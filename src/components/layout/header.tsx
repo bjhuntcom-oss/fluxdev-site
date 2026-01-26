@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Globe, ArrowUpRight } from "lucide-react";
+import { Menu, X, Globe, ArrowUpRight, User, LayoutDashboard } from "lucide-react";
 import { useLocale } from "@/contexts";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -82,6 +83,33 @@ export function Header() {
               </button>
 
               <div className="w-px h-6 bg-white/10" />
+
+              <SignedOut>
+                <Link
+                  href="/connexion"
+                  className="flex items-center gap-2 px-4 py-2 text-xs text-white/60 hover:text-white transition-colors uppercase tracking-[0.1em] border border-white/10 hover:border-white/20"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>Connexion</span>
+                </Link>
+              </SignedOut>
+
+              <SignedIn>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2 px-4 py-2 text-xs text-white/60 hover:text-white transition-colors uppercase tracking-[0.1em] border border-white/10 hover:border-white/20"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <span>Dashboard</span>
+                </Link>
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8 border border-white/20",
+                    },
+                  }}
+                />
+              </SignedIn>
 
               <Link
                 href="/contact"
@@ -166,6 +194,28 @@ export function Header() {
                   <Globe className="w-4 h-4" />
                   <span>{locale === "fr" ? "English" : "Français"}</span>
                 </button>
+
+                <SignedOut>
+                  <Link
+                    href="/connexion"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-3 w-full px-6 py-4 text-xs text-white/70 hover:text-white transition-colors uppercase tracking-[0.15em] border border-white/[0.06] hover:border-white/10"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Connexion</span>
+                  </Link>
+                </SignedOut>
+
+                <SignedIn>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-3 w-full px-6 py-4 text-xs text-white/70 hover:text-white transition-colors uppercase tracking-[0.15em] border border-white/[0.06] hover:border-white/10"
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Dashboard</span>
+                  </Link>
+                </SignedIn>
 
                 <Link
                   href="/contact"

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
-import { SmoothScroll } from "@/components/smooth-scroll";
+import { ClerkProvider } from "@clerk/nextjs";
+import { frFR } from "@clerk/localizations";
 import { LocaleProvider } from "@/contexts";
 import { Preloader } from "@/components/ui/preloader";
 import { CookieConsent } from "@/components/ui/cookie-consent";
 import { OrganizationJsonLd, WebsiteJsonLd } from "@/components/seo/json-ld";
+import { MainLayout } from "@/components/layout/main-layout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -102,15 +102,35 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
         suppressHydrationWarning
       >
-        <LocaleProvider>
-          <Preloader />
-          <CookieConsent />
-          <SmoothScroll>
-            <Header />
-            <main>{children}</main>
-            <Footer />
-          </SmoothScroll>
-        </LocaleProvider>
+        <ClerkProvider
+          localization={frFR}
+          appearance={{
+            variables: {
+              colorPrimary: "#ffffff",
+              colorBackground: "#000000",
+              colorText: "#ffffff",
+              colorTextSecondary: "#a0a0a0",
+              colorInputBackground: "rgba(255,255,255,0.05)",
+              colorInputText: "#ffffff",
+            },
+            elements: {
+              formButtonPrimary: "bg-white text-black hover:bg-white/90",
+              card: "bg-black border border-white/10",
+              headerTitle: "text-white",
+              headerSubtitle: "text-white/50",
+              socialButtonsBlockButton: "bg-white/5 border-white/10 text-white hover:bg-white/10",
+              formFieldLabel: "text-white/70",
+              formFieldInput: "bg-white/5 border-white/10 text-white",
+              footerActionLink: "text-white/70 hover:text-white",
+            },
+          }}
+        >
+          <LocaleProvider>
+            <Preloader />
+            <CookieConsent />
+            <MainLayout>{children}</MainLayout>
+          </LocaleProvider>
+        </ClerkProvider>
       </body>
     </html>
   );
