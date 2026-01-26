@@ -104,7 +104,6 @@ export default function RootLayout({
       >
         <ClerkProvider
           localization={frFR}
-          proxyUrl="https://www.fluxdev.io/__clerk"
           appearance={{
             variables: {
               colorPrimary: "#ffffff",
