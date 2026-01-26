@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FluxDev.io
 
-## Getting Started
+Site web premium pour FluxDev - Solutions digitales propulsees par l'intelligence artificielle.
 
-First, run the development server:
+## Stack Technique
+
+- **Framework**: Next.js 16.0.10 (version securisee, corrigee pour React2Shell)
+- **React**: 19.x avec React Compiler
+- **Styling**: Tailwind CSS 4.x + shadcn/ui
+- **Animations**: Framer Motion + GSAP + Lenis (smooth scroll)
+- **3D**: Three.js + React Three Fiber
+- **Fonts**: Geist Sans & Geist Mono
+- **Icons**: Lucide React
+
+## Fonctionnalites
+
+- Design ultra-moderne avec fond gris studio
+- Animations fluides et parallax sur scroll
+- Images de fond plein ecran avec effets de profondeur
+- Smooth scrolling avec Lenis
+- Header/Footer professionnels
+- Selection de langue FR/EN avec detection automatique
+- 20+ agents IA illustres par categories
+- 20 projets en portfolio
+- Page equipe avec design creatif
+- Formulaire de contact complet
+
+## Installation
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/
+  app/
+    page.tsx          # Page d'accueil
+    equipe/           # Page equipe
+    projets/          # Page projets
+    contact/          # Page contact
+  components/
+    animations.tsx    # Composants d'animation Framer Motion
+    smooth-scroll.tsx # Smooth scroll avec Lenis
+    three-background.tsx # Background 3D Three.js
+    layout/
+      header.tsx      # Header avec navigation
+      footer.tsx      # Footer professionnel
+    sections/
+      hero.tsx        # Section hero avec parallax
+      services.tsx    # Section services
+      agents.tsx      # Section agents IA
+      methodology.tsx # Section methodologie
+      contact.tsx     # Section contact CTA
+    ui/               # Composants shadcn/ui
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Couleurs
 
-## Learn More
+- Background: `#1A1A1A` (gris studio)
+- Foreground: `#FAFAFA`
+- Accent: `#ECF8F6`, `#EBF2FA`
+- Muted: `#7E7E7E`, `#A3A3A3`
 
-To learn more about Next.js, take a look at the following resources:
+## Deploiement
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build
+npm start
+```
