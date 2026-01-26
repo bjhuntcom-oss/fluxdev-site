@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/__clerk/:path*",
-        destination: "https://clerk.fluxdev.io/__clerk/:path*",
+        destination: "https://frontend-api.clerk.services/:path*",
       },
     ];
   },
