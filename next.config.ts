@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/__clerk/:path*",
+        destination: "https://clerk.fluxdev.io/__clerk/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
