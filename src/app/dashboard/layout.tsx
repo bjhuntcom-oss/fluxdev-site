@@ -17,9 +17,11 @@ import {
   Menu,
   X,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { UserButton } from "@clerk/nextjs";
+import { useUserSync } from "@/hooks/useUserSync";
 
 interface NavItem {
   label: string;
@@ -62,6 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<string>("user");
   const [featuresUnlocked, setFeaturesUnlocked] = useState(false);
+  const { isSynced, isLoading: isSyncing, error: syncError } = useUserSync();
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -72,10 +75,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [isLoaded, user]);
 
-  if (!isLoaded) {
+  if (!isLoaded || isSyncing) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
         <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+        {isSyncing && <p className="text-white/40 text-sm">Synchronisation du compte...</p>}
+      </div>
+    );
+  }
+
+  if (syncError) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
+        <div className="text-red-400 text-center">
+          <p className="text-lg font-medium">Erreur de synchronisation</p>
+          <p className="text-sm text-white/40 mt-2">{syncError}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
+          >
+            Réessayer
+          </button>
+        </div>
       </div>
     );
   }
