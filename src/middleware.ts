@@ -1,76 +1,86 @@
 import { clerkMiddleware, createRouteMatcher, clerkClient } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-// Decoy Headers - Mislead Wappalyzer and other scanners
+/**
+ * Decoy Headers for Wappalyzer Misdirection
+ * 
+ * These headers use REAL patterns that Wappalyzer recognizes.
+ * Goal: Display exactly 20 fake technologies to confuse fingerprinting.
+ * 
+ * Wappalyzer detects via:
+ * - X-Powered-By (most important)
+ * - X-Generator (CMS detection)
+ * - X-AspNet-Version, X-AspNetMvc-Version (ASP.NET)
+ * - X-Drupal-Cache, X-Drupal-Dynamic-Cache (Drupal)
+ * - X-Shopify-Stage (Shopify)
+ * - X-Varnish (Varnish Cache)
+ * - X-Sucuri-ID (Sucuri WAF)
+ * - Via header (proxies)
+ */
 const decoyHeaders: Record<string, string> = {
-  // Fake Server Technologies
-  'X-Powered-By': 'PHP/8.3.2',
+  // 1. PHP (X-Powered-By is the main detection)
+  'X-Powered-By': 'PHP/8.3.2, ASP.NET, Express, PleskLin',
+  
+  // 2-3. ASP.NET (real headers Wappalyzer checks)
   'X-AspNet-Version': '4.0.30319',
   'X-AspNetMvc-Version': '5.2.9',
-  // Fake Frameworks
-  'X-Framework': 'Laravel/10.41.0',
-  'X-Django-Version': '4.2.9',
-  'X-Rails-Version': '7.1.3',
-  'X-Spring-Boot': '3.2.2',
-  'X-Express-Version': '4.18.2',
-  'X-Flask-Version': '3.0.1',
-  'X-Symfony-Version': '7.0.3',
-  'X-CodeIgniter': '4.4.4',
-  // Fake CMS
-  'X-CMS': 'WordPress/6.4.3',
-  'X-Drupal-Version': '10.2.2',
-  'X-Joomla-Version': '5.0.2',
-  'X-Magento-Version': '2.4.6-p4',
+  
+  // 4-5. Drupal (real headers)
+  'X-Drupal-Cache': 'HIT',
+  'X-Drupal-Dynamic-Cache': 'MISS',
+  
+  // 6. Generator meta equivalent (CMS detection)
+  'X-Generator': 'WordPress 6.4.3, Joomla! 5.0, Drupal 10',
+  
+  // 7. Shopify (real header)
   'X-Shopify-Stage': 'production',
-  'X-Ghost-Version': '5.78.0',
-  // Fake Security Tools
-  'X-WAF': 'Cloudflare-Enterprise',
-  'X-Protected-By': 'Imperva-Incapsula',
-  'X-Security-Scanner': 'Qualys-WAS',
-  'X-Bot-Protection': 'DataDome-Enterprise',
-  'X-DDoS-Protection': 'Akamai-Kona',
-  'X-SIEM': 'Splunk-Enterprise',
-  // Fake CDN/Infrastructure
-  'X-CDN': 'Fastly',
-  'X-Cache-Backend': 'Varnish/7.4.2',
-  'X-Load-Balancer': 'HAProxy/2.9.4',
-  'X-Proxy': 'nginx/1.25.4',
-  'X-Container': 'Docker/25.0.2',
-  'X-Orchestration': 'Kubernetes/1.29.1',
-  // Fake Database Hints
-  'X-DB-Backend': 'PostgreSQL/16.1',
-  'X-Cache-Store': 'Redis/7.2.4',
-  'X-Search-Engine': 'Elasticsearch/8.12.0',
-  'X-Queue': 'RabbitMQ/3.13.0',
-  // Fake Cloud Provider
-  'X-Cloud-Provider': 'AWS-EC2',
-  'X-Region': 'eu-west-3',
-  'X-Instance-Type': 'm7i.xlarge',
-  // Fake Analytics/Monitoring
-  'X-Analytics': 'Google-Analytics-4',
-  'X-APM': 'Datadog-APM',
-  'X-Monitoring': 'New-Relic',
-  'X-Logging': 'ELK-Stack',
-  // Fake Auth Provider
-  'X-Auth-Provider': 'Auth0',
-  'X-SSO': 'Okta-SAML',
-  'X-MFA': 'Duo-Security',
-  // Fake Payment
-  'X-Payment-Gateway': 'Stripe-v3',
-  'X-PCI-Compliant': 'Level-1',
-  // Fake API Info
-  'X-API-Version': 'v3.14.159',
-  'X-Rate-Limit-Provider': 'Kong-Gateway',
-  'X-GraphQL-Engine': 'Apollo-Server',
-  // Fake Compliance
-  'X-GDPR-Compliant': 'true',
-  'X-SOC2-Certified': 'Type-II',
-  'X-ISO27001': 'Certified',
-  'X-HIPAA-Compliant': 'true',
-  // Fake Build Info
-  'X-Build-Hash': 'a3f8c2e9b1d4',
-  'X-Deploy-ID': 'dpl_H7kJ9mN2pQ4r',
-  'X-Environment': 'production-blue',
+  
+  // 8. Varnish Cache (real header)
+  'X-Varnish': '123456789 987654321',
+  
+  // 9. Sucuri WAF (real header)
+  'X-Sucuri-ID': 'abc123def456',
+  
+  // 10. Proxy/CDN chain (Via header is standard)
+  'Via': '1.1 varnish, 1.1 nginx, 1.1 cloudflare',
+  
+  // 11. LiteSpeed (real header)
+  'X-LiteSpeed-Cache': 'hit',
+  
+  // 12. Plesk (detected via X-Powered-By already, reinforce)
+  'X-Plesk-Site': 'true',
+  
+  // 13. cPanel (real indicator)
+  'X-cPanel': 'true',
+  
+  // 14. OpenResty/nginx variant
+  'X-OpenResty': '1.25.3.1',
+  
+  // 15. Craft CMS (real header)
+  'X-Craft-Token': 'disabled',
+  
+  // 16. Ghost CMS hint
+  'X-Ghost-Cache-Status': 'HIT',
+  
+  // 17. Magento (real headers)
+  'X-Magento-Vary': 'abc123',
+  
+  // 18. WP Engine (real header)
+  'X-WPE-Cached': 'true',
+  
+  // 19. Cloudflare indicators
+  'CF-Cache-Status': 'HIT',
+  'CF-RAY': '8a1b2c3d4e5f6g7h-CDG',
+  
+  // 20. Fastly CDN (real header)
+  'X-Served-By': 'cache-cdg20734-CDG, cache-par21345-PAR',
+  'X-Cache': 'HIT, HIT',
+  'X-Cache-Hits': '1, 1',
+  
+  // Bonus: Security tool hints that some scanners detect
+  'X-Content-Type-Options': 'nosniff',
+  'X-XSS-Protection': '1; mode=block',
+  'X-Mod-Security': '2.9.7',
 };
 
 const isPublicRoute = createRouteMatcher([
