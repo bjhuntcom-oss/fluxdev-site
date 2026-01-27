@@ -22,6 +22,7 @@ import {
 import { useState, useEffect } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { useUserSync } from "@/hooks/useUserSync";
+import { supabase } from "@/lib/supabase/client";
 
 interface NavItem {
   label: string;
@@ -67,12 +68,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { isSynced, isLoading: isSyncing, error: syncError } = useUserSync();
 
   useEffect(() => {
-    if (isLoaded && user) {
-      const role = (user.publicMetadata?.role as string) || "user";
-      const unlocked = (user.publicMetadata?.features_unlocked as boolean) || false;
-      setUserRole(role);
-      setFeaturesUnlocked(unlocked);
+    async function fetchUserRole() {
+      if (isLoaded && user) {
+        // Fetch role from Supabase (source of truth)
+        const { data: userData } = await supabase
+          .from('users')
+          .select('role, features_unlocked, status')
+          .eq('clerk_id', user.id)
+          .single();
+
+        if (userData) {
+          setUserRole(userData.role || 'user');
+          setFeaturesUnlocked(userData.features_unlocked || false);
+        } else {
+          // Fallback to Clerk metadata
+          const role = (user.publicMetadata?.role as string) || "user";
+          const unlocked = (user.publicMetadata?.features_unlocked as boolean) || false;
+          setUserRole(role);
+          setFeaturesUnlocked(unlocked);
+        }
+      }
     }
+    fetchUserRole();
   }, [isLoaded, user]);
 
   if (!isLoaded || isSyncing) {
