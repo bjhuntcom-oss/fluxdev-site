@@ -246,12 +246,32 @@ src/lib/supabase/server.ts          → Fallback anon key si service_role manqua
 
 ### État RLS Final
 
-| Table | RLS | Raison |
-|-------|-----|--------|
-| users | OFF | Filtrage app - pas de JWT Clerk dans Supabase |
-| conversations | OFF | Filtrage app (lignes 179-189 messages/page.tsx) |
-| messages | OFF | Filtrage app |
-| documents | OFF | Filtrage app |
+| Table | RLS | Méthode |
+|-------|-----|---------|
+| users | ✅ ON | Header `x-clerk-id` + fonctions SQL |
+| conversations | ✅ ON | Policy basée sur `get_current_user_id()` |
+| messages | ✅ ON | Policy basée sur conversation access |
+| documents | ✅ ON | Policy basée sur `user_id` |
+
+### Mécanisme RLS
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  Client React   │────▶│  Supabase API    │────▶│   PostgreSQL    │
+│  initClerkId()  │     │  Header x-clerk-id│     │  RLS Policies   │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+         │                                               │
+         │ clerk_id                                      │
+         └───────────────────────────────────────────────┘
+                    get_current_clerk_id()
+```
+
+**Fonctions SQL créées:**
+- `get_current_clerk_id()` - Lit le header `x-clerk-id`
+- `get_current_user_id()` - Retourne l'UUID Supabase
+- `is_current_user_admin()` - Vérifie si admin
+- `is_current_user_staff()` - Vérifie si staff/dev/admin
+- `set_clerk_id(TEXT)` - (legacy) Définit la variable de session
 
 ### Filtrage Application (Code JavaScript)
 
