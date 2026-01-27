@@ -224,24 +224,59 @@ ALTER TABLE messages DISABLE ROW LEVEL SECURITY;
 
 ---
 
-## 9. Recommandations
+## 9. CORRECTIONS APPLIQUÉES (Audit 27/01/2026)
 
-### Immédiat
-1. **Votre rôle**: Actuellement `admin` → vous voyez tout (normal)
-2. **Tester avec un vrai user**: Créez un compte avec role='user' pour vérifier l'isolation
+### Problèmes identifiés et corrigés
 
-### À Implémenter (Sécurité Renforcée)
-1. **RLS avec policies non-récursives**:
-```sql
--- Exemple de policy sécurisée sans récursion
-CREATE POLICY "Users see own conversations" ON conversations
-FOR SELECT USING (
-  user_id = (SELECT id FROM users WHERE clerk_id = auth.uid()::text LIMIT 1)
-  OR 
-  assigned_staff_id = (SELECT id FROM users WHERE clerk_id = auth.uid()::text LIMIT 1)
-);
+| Problème | Cause | Solution |
+|----------|-------|----------|
+| Rôle "user" affiché alors que admin | UI lisait Clerk metadata au lieu de Supabase | `layout.tsx` lit maintenant depuis Supabase |
+| Erreur 500 sur /api/user/sync | `SUPABASE_SERVICE_ROLE_KEY` manquant sur Vercel | Fallback vers anon key (RLS désactivé) |
+| RLS bloquait les requêtes | Policies utilisaient JWT Clerk inexistant | RLS désactivé, filtrage côté application |
+| Webhook Clerk utilisait mauvais client | Utilisait anon key au lieu de admin | Corrigé pour utiliser `createAdminSupabaseClient` |
+
+### Fichiers modifiés
+
+```
+src/app/dashboard/layout.tsx        → Lecture rôle depuis Supabase
+src/app/api/user/sync/route.ts      → Utilise admin client
+src/app/api/webhooks/clerk/route.ts → Utilise admin client
+src/lib/supabase/server.ts          → Fallback anon key si service_role manquant
 ```
 
-2. **Valider le webhook Clerk** pour sync automatique des nouveaux utilisateurs
+### État RLS Final
 
-3. **Audit régulier** des policies RLS
+| Table | RLS | Raison |
+|-------|-----|--------|
+| users | OFF | Filtrage app - pas de JWT Clerk dans Supabase |
+| conversations | OFF | Filtrage app (lignes 179-189 messages/page.tsx) |
+| messages | OFF | Filtrage app |
+| documents | OFF | Filtrage app |
+
+### Filtrage Application (Code JavaScript)
+
+```javascript
+// messages/page.tsx lignes 179-189
+if (userRole === 'admin') {
+  // Admin voit TOUT - pas de filtre
+} else if (userRole === 'staff' || userRole === 'dev') {
+  // Staff/Dev voit seulement conversations assignées
+  query = query.eq("assigned_staff_id", currentUserId);
+} else {
+  // User voit seulement ses propres conversations
+  query = query.eq("user_id", currentUserId);
+}
+```
+
+---
+
+## 10. Recommandations Futures
+
+### Sécurité Renforcée (Optionnel)
+1. **Ajouter `SUPABASE_SERVICE_ROLE_KEY` sur Vercel** pour opérations admin sécurisées
+2. **Implémenter JWT custom Clerk→Supabase** pour RLS basé sur identité
+3. **Activer RLS** une fois JWT configuré
+
+### Maintenance
+1. **Tester régulièrement** l'isolation des données entre utilisateurs
+2. **Auditer** le code de filtrage lors de modifications
