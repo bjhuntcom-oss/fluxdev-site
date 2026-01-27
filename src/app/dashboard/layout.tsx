@@ -22,7 +22,7 @@ import {
 import { useState, useEffect } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { useUserSync } from "@/hooks/useUserSync";
-import { supabase } from "@/lib/supabase/client";
+import { supabase, initClerkId, ensureClerkId } from "@/lib/supabase/client";
 
 interface NavItem {
   label: string;
@@ -70,6 +70,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     async function fetchUserRole() {
       if (isLoaded && user) {
+        // Initialize clerk_id for RLS policies
+        await initClerkId(user.id);
+        await ensureClerkId();
+        
         // Fetch role from Supabase (source of truth)
         const { data: userData } = await supabase
           .from('users')

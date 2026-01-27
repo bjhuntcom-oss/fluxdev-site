@@ -16,7 +16,7 @@ import {
   ArchiveRestore,
   Filter
 } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
+import { supabase, ensureClerkId } from "@/lib/supabase/client";
 import { sanitizeInput } from "@/lib/security";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -145,6 +145,9 @@ export default function MessagesPage() {
   const loadConversations = async () => {
     setIsLoading(true);
     try {
+      // Ensure clerk_id is set for RLS
+      await ensureClerkId();
+      
       // Get current user ID and role
       const { data: userData } = await supabase
         .from("users")
@@ -265,6 +268,8 @@ export default function MessagesPage() {
 
   const loadMessages = async (conversationId: string) => {
     try {
+      await ensureClerkId();
+      
       // Get current user ID
       const { data: userData } = await supabase
         .from("users")
@@ -311,6 +316,7 @@ export default function MessagesPage() {
     if (!newSubject.trim()) return;
 
     try {
+      await ensureClerkId();
       const { data: userData } = await supabase
         .from("users")
         .select("id")
@@ -345,6 +351,7 @@ export default function MessagesPage() {
 
     setIsSending(true);
     try {
+      await ensureClerkId();
       const { data: userData } = await supabase
         .from("users")
         .select("id")
