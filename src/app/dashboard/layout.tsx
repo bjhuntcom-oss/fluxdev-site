@@ -84,22 +84,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (syncError) {
-    return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
-        <div className="text-red-400 text-center">
-          <p className="text-lg font-medium">Erreur de synchronisation</p>
-          <p className="text-sm text-white/40 mt-2">{syncError}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
-          >
-            Réessayer
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   const canAccess = (roles?: string[]) => {
     if (!roles) return true;

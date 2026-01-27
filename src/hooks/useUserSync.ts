@@ -21,23 +21,29 @@ export function useUserSync() {
         const checkRes = await fetch('/api/user/sync');
         const checkData = await checkRes.json();
 
-        if (!checkData.exists) {
-          // Sync user to Supabase
-          const syncRes = await fetch('/api/user/sync', { method: 'POST' });
-          const syncData = await syncRes.json();
-
-          if (!syncRes.ok) {
-            setError(syncData.error || 'Failed to sync user');
-            setIsLoading(false);
-            return;
-          }
+        if (checkData.exists) {
+          // User already exists, we're good
+          setIsSynced(true);
+          setIsLoading(false);
+          return;
         }
 
-        setIsSynced(true);
+        // Try to sync user to Supabase
+        const syncRes = await fetch('/api/user/sync', { method: 'POST' });
+        
+        if (syncRes.ok) {
+          setIsSynced(true);
+        } else {
+          // Don't block the dashboard - just log and continue
+          console.warn('User sync failed, continuing without sync');
+          setIsSynced(true); // Allow access anyway
+        }
+        
         setIsLoading(false);
       } catch (err) {
         console.error('User sync error:', err);
-        setError('Failed to sync user');
+        // Don't block - allow access with warning
+        setIsSynced(true);
         setIsLoading(false);
       }
     }
