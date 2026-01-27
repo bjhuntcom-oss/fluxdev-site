@@ -1,13 +1,6 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-
-function getSupabaseClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
+import { createAdminSupabaseClient } from '@/lib/supabase/server';
 
 export async function POST() {
   try {
@@ -23,7 +16,7 @@ export async function POST() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = createAdminSupabaseClient();
     const primaryEmail = user.emailAddresses[0]?.emailAddress;
 
     // Check if user already exists
@@ -89,7 +82,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = createAdminSupabaseClient();
 
     const { data: user, error } = await supabase
       .from('users')
