@@ -14,12 +14,24 @@ import {
   MessageSquare,
   Archive,
   ArchiveRestore,
-  Filter
+  Filter,
+  Image as ImageIcon,
+  FileText,
+  Download,
+  Loader2
 } from "lucide-react";
+import Image from "next/image";
 import { supabase, ensureClerkId } from "@/lib/supabase/client";
 import { sanitizeInput } from "@/lib/security";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+
+interface Attachment {
+  name: string;
+  url: string;
+  type: string;
+  size: number;
+}
 
 interface Message {
   id: string;
@@ -27,6 +39,7 @@ interface Message {
   sender_id: string;
   created_at: string;
   is_read: boolean;
+  attachments?: Attachment[];
   sender?: {
     first_name: string;
     last_name: string;
@@ -86,7 +99,10 @@ export default function MessagesPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showAssignModal, setShowAssignModal] = useState<string | null>(null);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -386,24 +402,66 @@ export default function MessagesPage() {
     }
   };
 
+  // Upload files to Supabase Storage
+  const uploadFiles = async (files: File[]): Promise<Attachment[]> => {
+    const attachments: Attachment[] = [];
+    
+    for (const file of files) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${selectedConversation}/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('message-attachments')
+        .upload(filePath, file);
+      
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        continue;
+      }
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('message-attachments')
+        .getPublicUrl(filePath);
+      
+      attachments.push({
+        name: file.name,
+        url: publicUrl,
+        type: file.type,
+        size: file.size
+      });
+    }
+    
+    return attachments;
+  };
+
   const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation || isSending) return;
+    if ((!newMessage.trim() && pendingFiles.length === 0) || !selectedConversation || isSending) return;
 
     setIsSending(true);
+    setIsUploading(pendingFiles.length > 0);
+    
     try {
       const userData = await getOrCreateUser();
-
       if (!userData) return;
+
+      // Upload files if any
+      let attachments: Attachment[] = [];
+      if (pendingFiles.length > 0) {
+        attachments = await uploadFiles(pendingFiles);
+      }
 
       const { error } = await supabase.from("messages").insert({
         conversation_id: selectedConversation,
         sender_id: userData.id,
-        content: sanitizeInput(newMessage),
+        content: sanitizeInput(newMessage) || (attachments.length > 0 ? '' : ''),
+        attachments: attachments.length > 0 ? attachments : null,
       });
 
       if (error) throw error;
 
       setNewMessage("");
+      setPendingFiles([]);
       
       await supabase
         .from("conversations")
@@ -416,8 +474,26 @@ export default function MessagesPage() {
       console.error("Error sending message:", error);
     } finally {
       setIsSending(false);
+      setIsUploading(false);
     }
   };
+
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      setPendingFiles(prev => [...prev, ...files]);
+    }
+    e.target.value = '';
+  };
+
+  // Remove pending file
+  const removePendingFile = (index: number) => {
+    setPendingFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Check if file is an image
+  const isImageFile = (type: string) => type.startsWith('image/');
 
   const selectedConv = conversations.find((c) => c.id === selectedConversation);
 
@@ -744,7 +820,40 @@ export default function MessagesPage() {
                             {senderName}
                           </span>
                         </div>
-                        <p className="text-sm leading-relaxed">{message.content}</p>
+                        {message.content && (
+                          <p className="text-sm leading-relaxed">{message.content}</p>
+                        )}
+                        
+                        {/* Attachments */}
+                        {message.attachments && message.attachments.length > 0 && (
+                          <div className="mt-2 space-y-2">
+                            {message.attachments.map((attachment, idx) => (
+                              <div key={idx}>
+                                {isImageFile(attachment.type) ? (
+                                  <a href={attachment.url} target="_blank" rel="noopener noreferrer" className="block">
+                                    <img
+                                      src={attachment.url}
+                                      alt={attachment.name}
+                                      className="max-w-full max-h-60 rounded object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                    />
+                                  </a>
+                                ) : (
+                                  <a
+                                    href={attachment.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`flex items-center gap-2 p-2 rounded ${isOwn ? 'bg-black/5 hover:bg-black/10' : 'bg-white/5 hover:bg-white/10'} transition-colors`}
+                                  >
+                                    <FileText className="w-4 h-4 flex-shrink-0" />
+                                    <span className="text-xs truncate flex-1">{attachment.name}</span>
+                                    <Download className="w-3 h-3 flex-shrink-0 opacity-50" />
+                                  </a>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
                         <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? 'text-black/40' : 'text-white/30'}`}>
                           <span className="text-[10px]">
                             {format(new Date(message.created_at), "HH:mm")}
@@ -763,20 +872,50 @@ export default function MessagesPage() {
 
             {/* Input Area */}
             <div className="p-4 border-t border-white/[0.06]">
+              {/* Pending Files Preview */}
+              {pendingFiles.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {pendingFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="relative group bg-white/5 border border-white/10 p-2 flex items-center gap-2"
+                    >
+                      {file.type.startsWith('image/') ? (
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={file.name}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 flex items-center justify-center bg-white/5 rounded">
+                          <FileText className="w-5 h-5 text-white/40" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-white/70 truncate max-w-[120px]">{file.name}</p>
+                        <p className="text-[10px] text-white/40">{(file.size / 1024).toFixed(1)} KB</p>
+                      </div>
+                      <button
+                        onClick={() => removePendingFile(index)}
+                        className="p-1 hover:bg-white/10 rounded transition-colors"
+                      >
+                        <X className="w-3 h-3 text-white/50" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
               <div className="flex items-end gap-3">
                 <label className="p-2.5 hover:bg-white/[0.04] transition-colors cursor-pointer">
                   <Paperclip className="w-4 h-4 text-white/40" />
                   <input
+                    ref={fileInputRef}
                     type="file"
                     className="hidden"
-                    accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.zip,.txt"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setNewMessage((prev) => prev + ` [Fichier: ${file.name}]`);
-                      }
-                      e.target.value = '';
-                    }}
+                    accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.doc,.docx,.xls,.xlsx,.zip,.txt"
+                    multiple
+                    onChange={handleFileSelect}
                   />
                 </label>
                 <div className="flex-1 relative">
@@ -789,18 +928,21 @@ export default function MessagesPage() {
                         sendMessage();
                       }
                     }}
-                    placeholder="Ecrivez votre message..."
+                    placeholder={pendingFiles.length > 0 ? "Ajoutez un message (optionnel)..." : "Ecrivez votre message..."}
                     rows={1}
                     className="w-full bg-white/[0.03] border border-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/10 resize-none"
                   />
                 </div>
                 <button
                   onClick={sendMessage}
-                  disabled={!newMessage.trim() || isSending}
+                  disabled={(!newMessage.trim() && pendingFiles.length === 0) || isSending}
                   className="p-2.5 bg-white text-black hover:bg-white/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
                   {isSending ? (
-                    <div className="w-4 h-4 border-2 border-black/20 border-t-black animate-spin rounded-full" />
+                    <div className="flex items-center gap-1">
+                      {isUploading && <Loader2 className="w-4 h-4 animate-spin" />}
+                      {!isUploading && <div className="w-4 h-4 border-2 border-black/20 border-t-black animate-spin rounded-full" />}
+                    </div>
                   ) : (
                     <Send className="w-4 h-4" />
                   )}
