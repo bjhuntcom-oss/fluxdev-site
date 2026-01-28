@@ -240,14 +240,31 @@ export default function DashboardPage() {
           <div>
             <p className="text-[10px] text-white/50 uppercase tracking-widest mb-2">Espace personnel</p>
             <h1 className="text-2xl font-light text-white">
-              Bonjour, {user?.firstName || "Utilisateur"}
+              Bonjour, {user?.firstName || "Utilisateur"} 👋
             </h1>
+            <p className="text-white/40 text-sm mt-1">
+              {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 border border-white/10 bg-white/[0.02]">
-            <div className={`w-1.5 h-1.5 ${userStatus === "active" ? "bg-white" : "bg-white/40"}`} />
-            <span className="text-[10px] text-white/60 uppercase tracking-wider">
-              {userStatus === "active" ? "Actif" : userStatus === "pending" ? "En attente" : userStatus}
-            </span>
+          <div className="flex items-center gap-3">
+            <Link 
+              href="/dashboard/messages"
+              className="flex items-center gap-2 px-4 py-2 bg-white text-black text-sm hover:bg-white/90 transition-all duration-200 active:scale-95"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Messagerie
+              {stats.unreadMessages > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 bg-black text-white text-[10px] rounded-full">
+                  {stats.unreadMessages}
+                </span>
+              )}
+            </Link>
+            <div className="flex items-center gap-2 px-3 py-1.5 border border-white/10 bg-white/[0.02]">
+              <div className={`w-1.5 h-1.5 ${userStatus === "active" ? "bg-emerald-400" : "bg-amber-400"} animate-pulse`} />
+              <span className="text-[10px] text-white/60 uppercase tracking-wider">
+                {userStatus === "active" ? "Actif" : userStatus === "pending" ? "En attente" : userStatus}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -308,20 +325,33 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div>
-        <p className="text-[10px] text-white/50 uppercase tracking-widest mb-4">Apercu</p>
+        <p className="text-[10px] text-white/50 uppercase tracking-widest mb-4">Aperçu</p>
         <div className="grid grid-cols-3 border border-white/10">
-          <div className="p-5 border-r border-white/[0.06]">
-            <p className="text-2xl font-light text-white mb-1">{stats.unreadMessages}</p>
-            <p className="text-[10px] text-white/50 uppercase tracking-wider">Messages</p>
-          </div>
-          <div className="p-5 border-r border-white/[0.06]">
-            <p className="text-2xl font-light text-white mb-1">{stats.documentsCount}</p>
+          <Link href="/dashboard/messages" className="p-5 border-r border-white/[0.06] hover:bg-white/[0.02] transition-colors group">
+            <div className="flex items-center justify-between mb-2">
+              <MessageSquare className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors" />
+              {stats.unreadMessages > 0 && (
+                <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+              )}
+            </div>
+            <p className="text-3xl font-light text-white mb-1">{stats.unreadMessages}</p>
+            <p className="text-[10px] text-white/50 uppercase tracking-wider">Messages non lus</p>
+          </Link>
+          <Link href="/dashboard/documents" className="p-5 border-r border-white/[0.06] hover:bg-white/[0.02] transition-colors group">
+            <div className="flex items-center justify-between mb-2">
+              <FileText className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors" />
+            </div>
+            <p className="text-3xl font-light text-white mb-1">{stats.documentsCount}</p>
             <p className="text-[10px] text-white/50 uppercase tracking-wider">Documents</p>
-          </div>
-          <div className="p-5">
-            <p className="text-2xl font-light text-white mb-1">{featuresUnlocked ? stats.projectsCount : "—"}</p>
+          </Link>
+          <Link href={featuresUnlocked ? "/dashboard/projets" : "#"} className={`p-5 transition-colors group ${featuresUnlocked ? 'hover:bg-white/[0.02]' : 'opacity-50 cursor-not-allowed'}`}>
+            <div className="flex items-center justify-between mb-2">
+              <FolderKanban className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors" />
+              {!featuresUnlocked && <Lock className="w-3 h-3 text-white/30" />}
+            </div>
+            <p className="text-3xl font-light text-white mb-1">{featuresUnlocked ? stats.projectsCount : "—"}</p>
             <p className="text-[10px] text-white/50 uppercase tracking-wider">Projets</p>
-          </div>
+          </Link>
         </div>
       </div>
 
