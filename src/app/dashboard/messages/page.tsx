@@ -312,16 +312,47 @@ export default function MessagesPage() {
     }
   };
 
+  // Helper to get or create user in database
+  const getOrCreateUser = async () => {
+    await ensureClerkId(user?.id);
+    
+    // Try to get user first
+    let { data: userData } = await supabase
+      .from("users")
+      .select("id")
+      .eq("clerk_id", user?.id)
+      .single();
+
+    // If user doesn't exist, sync from Clerk
+    if (!userData && user) {
+      console.log("User not found, syncing from Clerk...");
+      try {
+        const response = await fetch("/api/user/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (response.ok) {
+          // Retry getting user after sync
+          const { data: newUserData } = await supabase
+            .from("users")
+            .select("id")
+            .eq("clerk_id", user?.id)
+            .single();
+          userData = newUserData;
+        }
+      } catch (syncError) {
+        console.error("Error syncing user:", syncError);
+      }
+    }
+
+    return userData;
+  };
+
   const createConversation = async () => {
     if (!newSubject.trim()) return;
 
     try {
-      await ensureClerkId(user?.id);
-      const { data: userData } = await supabase
-        .from("users")
-        .select("id")
-        .eq("clerk_id", user?.id)
-        .single();
+      const userData = await getOrCreateUser();
 
       if (!userData) {
         console.error("User not found in database for clerk_id:", user?.id);
@@ -354,12 +385,7 @@ export default function MessagesPage() {
 
     setIsSending(true);
     try {
-      await ensureClerkId(user?.id);
-      const { data: userData } = await supabase
-        .from("users")
-        .select("id")
-        .eq("clerk_id", user?.id)
-        .single();
+      const userData = await getOrCreateUser();
 
       if (!userData) return;
 
