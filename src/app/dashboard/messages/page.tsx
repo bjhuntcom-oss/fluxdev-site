@@ -83,6 +83,7 @@ export default function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; conversationId: string } | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string>("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showAssignModal, setShowAssignModal] = useState<string | null>(null);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -162,8 +163,9 @@ export default function MessagesPage() {
         return;
       }
 
-      const currentUserId = userData.id;
+      const currentUserIdValue = userData.id;
       const userRole = userData.role;
+      setCurrentUserId(currentUserIdValue);
       setCurrentUserRole(userRole);
 
       // Load staff list for admin assignment
@@ -186,10 +188,10 @@ export default function MessagesPage() {
         // No filter needed
       } else if (userRole === 'staff' || userRole === 'dev') {
         // Staff/Dev sees ONLY conversations assigned to them
-        query = query.eq("assigned_staff_id", currentUserId);
+        query = query.eq("assigned_staff_id", currentUserIdValue);
       } else {
         // Regular User sees ONLY their own conversations
-        query = query.eq("user_id", currentUserId);
+        query = query.eq("user_id", currentUserIdValue);
       }
 
       const { data, error } = await query;
@@ -717,34 +719,38 @@ export default function MessagesPage() {
                 </div>
               ) : (
                 messages.map((message) => {
-                  const senderRole = message.sender?.role === 'admin' ? 'Admin' : 
+                  const isOwn = message.sender_id === currentUserId;
+                  const senderRole = isOwn ? '' : 
+                                    message.sender?.role === 'admin' ? 'Admin' : 
                                     message.sender?.role === 'staff' ? 'Staff' : 
                                     message.sender?.role === 'dev' ? 'Dev' : 'User';
-                  const senderName = `${message.sender?.first_name || ''} ${message.sender?.last_name || ''}`.trim() || 'Utilisateur';
-                  const isOwn = message.sender?.role === "user";
+                  const senderName = isOwn ? 'Moi' : 
+                                    `${message.sender?.first_name || ''} ${message.sender?.last_name || ''}`.trim() || 'Utilisateur';
                   return (
                     <div
                       key={message.id}
                       className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className="max-w-[70%] px-4 py-3 bg-white text-black"
+                        className={`max-w-[70%] px-4 py-3 ${isOwn ? "bg-white text-black" : "bg-white/10 text-white border border-white/10"}`}
                       >
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[9px] px-1 py-0.5 bg-black/10 text-black/50">
-                            {senderRole}
-                          </span>
-                          <span className="text-[10px] text-black/50">
+                          {!isOwn && senderRole && (
+                            <span className="text-[9px] px-1 py-0.5 bg-white/10 text-white/50">
+                              {senderRole}
+                            </span>
+                          )}
+                          <span className={`text-[10px] ${isOwn ? 'text-black/70 font-medium' : 'text-white/60'}`}>
                             {senderName}
                           </span>
                         </div>
                         <p className="text-sm leading-relaxed">{message.content}</p>
-                        <div className="flex items-center justify-end gap-1 mt-1 text-black/40">
+                        <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? 'text-black/40' : 'text-white/30'}`}>
                           <span className="text-[10px]">
                             {format(new Date(message.created_at), "HH:mm")}
                           </span>
                           {isOwn && (
-                            message.is_read ? <CheckCheck className="w-3 h-3" /> : <Check className="w-3 h-3" />
+                            message.is_read ? <CheckCheck className="w-3 h-3 text-emerald-500" /> : <Check className="w-3 h-3" />
                           )}
                         </div>
                       </div>
