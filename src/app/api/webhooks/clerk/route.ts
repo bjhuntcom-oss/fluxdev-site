@@ -53,8 +53,8 @@ export async function POST(req: Request) {
           last_name: last_name || null,
           avatar_url: image_url || null,
           role: 'user',
-          status: 'pending',
-          features_unlocked: false,
+          status: 'active',
+          features_unlocked: true,
         });
 
         if (error) {

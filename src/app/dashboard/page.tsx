@@ -6,11 +6,7 @@ import {
   FileText, 
   FolderKanban, 
   ArrowRight,
-  Lock,
   Check,
-  Clock,
-  CheckCircle,
-  AlertCircle,
   Loader2
 } from "lucide-react";
 import Link from "next/link";
@@ -22,7 +18,6 @@ interface QuickAction {
   description: string;
   href: string;
   icon: React.ReactNode;
-  locked?: boolean;
   count?: number;
 }
 
@@ -34,8 +29,9 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
-  const [featuresUnlocked, setFeaturesUnlocked] = useState(false);
-  const [userStatus, setUserStatus] = useState<string>("pending");
+  // All features unlocked by default - no validation needed
+  const [featuresUnlocked] = useState(true);
+  const [userStatus] = useState<string>("active");
   const [stats, setStats] = useState<DashboardStats>({
     unreadMessages: 0,
     documentsCount: 0,
@@ -45,10 +41,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isLoaded && user) {
-      const unlocked = (user.publicMetadata?.features_unlocked as boolean) || false;
-      const status = (user.publicMetadata?.status as string) || "pending";
-      setFeaturesUnlocked(unlocked);
-      setUserStatus(status);
       loadUserStats(user.id);
     }
   }, [isLoaded, user]);
@@ -148,49 +140,6 @@ export default function DashboardPage() {
     }
   };
 
-  const getStatusConfig = () => {
-    switch (userStatus) {
-      case "active":
-        return {
-          icon: <CheckCircle className="w-4 h-4" />,
-          title: "Compte actif",
-          description: "Votre compte est verifie. Vous avez acces a toutes les fonctionnalites.",
-          color: "text-white/80",
-          bgColor: "bg-white/[0.03]",
-          borderColor: "border-white/10",
-        };
-      case "pending":
-        return {
-          icon: <Clock className="w-4 h-4" />,
-          title: "Validation en cours",
-          description: "Votre compte est en attente de validation par notre equipe. Vous pouvez deja utiliser la messagerie et envoyer des documents.",
-          color: "text-white/60",
-          bgColor: "bg-white/[0.02]",
-          borderColor: "border-white/[0.06]",
-        };
-      case "suspended":
-        return {
-          icon: <AlertCircle className="w-4 h-4" />,
-          title: "Compte suspendu",
-          description: "Votre compte a ete suspendu. Contactez le support pour plus d informations.",
-          color: "text-white/50",
-          bgColor: "bg-white/[0.01]",
-          borderColor: "border-white/[0.04]",
-        };
-      default:
-        return {
-          icon: <Clock className="w-4 h-4" />,
-          title: "Statut inconnu",
-          description: "Contactez le support pour verifier votre statut.",
-          color: "text-white/50",
-          bgColor: "bg-white/[0.02]",
-          borderColor: "border-white/[0.06]",
-        };
-    }
-  };
-
-  const statusConfig = getStatusConfig();
-
   const quickActions: QuickAction[] = [
     {
       title: "Messages",
@@ -212,14 +161,11 @@ export default function DashboardPage() {
     },
     {
       title: "Projets",
-      description: featuresUnlocked 
-        ? (stats.projectsCount > 0 
-            ? `${stats.projectsCount} projet${stats.projectsCount > 1 ? 's' : ''} en cours`
-            : "Aucun projet en cours")
-        : "Disponible apres validation",
+      description: stats.projectsCount > 0 
+        ? `${stats.projectsCount} projet${stats.projectsCount > 1 ? 's' : ''} en cours`
+        : "Gérez vos projets",
       href: "/dashboard/projets",
       icon: <FolderKanban className="w-4 h-4" />,
-      locked: !featuresUnlocked,
       count: stats.projectsCount,
     },
   ];
@@ -246,39 +192,18 @@ export default function DashboardPage() {
               {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Link 
-              href="/dashboard/messages"
-              className="flex items-center gap-2 px-4 py-2 bg-white text-black text-sm hover:bg-white/90 transition-all duration-200 active:scale-95"
-            >
-              <MessageSquare className="w-4 h-4" />
-              Messagerie
-              {stats.unreadMessages > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 bg-black text-white text-[10px] rounded-full">
-                  {stats.unreadMessages}
-                </span>
-              )}
-            </Link>
-            <div className="flex items-center gap-2 px-3 py-1.5 border border-white/10 bg-white/[0.02]">
-              <div className={`w-1.5 h-1.5 ${userStatus === "active" ? "bg-emerald-400" : "bg-amber-400"} animate-pulse`} />
-              <span className="text-[10px] text-white/60 uppercase tracking-wider">
-                {userStatus === "active" ? "Actif" : userStatus === "pending" ? "En attente" : userStatus}
+          <Link 
+            href="/dashboard/messages"
+            className="flex items-center gap-2 px-4 py-2 bg-white text-black text-sm hover:bg-white/90 transition-all duration-200 active:scale-95"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Messagerie
+            {stats.unreadMessages > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 bg-black text-white text-[10px] rounded-full">
+                {stats.unreadMessages}
               </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Status Card */}
-        <div className={`p-5 border ${statusConfig.borderColor} ${statusConfig.bgColor}`}>
-          <div className="flex items-start gap-4">
-            <div className={`${statusConfig.color} mt-0.5`}>
-              {statusConfig.icon}
-            </div>
-            <div className="flex-1">
-              <p className={`text-sm font-light ${statusConfig.color} mb-1`}>{statusConfig.title}</p>
-              <p className="text-white/50 text-xs leading-relaxed">{statusConfig.description}</p>
-            </div>
-          </div>
+            )}
+          </Link>
         </div>
       </div>
 
@@ -293,13 +218,11 @@ export default function DashboardPage() {
             {quickActions.map((action, index) => (
               <Link
                 key={action.title}
-                href={action.locked ? "#" : action.href}
+                href={action.href}
                 className={`
-                  block p-6 transition-all group relative
-                  ${action.locked ? "opacity-50 cursor-not-allowed" : "hover:bg-white/[0.02]"}
+                  block p-6 transition-all group relative hover:bg-white/[0.02]
                   ${index !== quickActions.length - 1 ? "md:border-r border-b md:border-b-0 border-white/[0.06]" : ""}
                 `}
-                onClick={(e) => action.locked && e.preventDefault()}
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -308,9 +231,7 @@ export default function DashboardPage() {
                     </div>
                     <h3 className="text-white/90 text-sm font-light">{action.title}</h3>
                   </div>
-                  {action.locked ? (
-                    <Lock className="w-3 h-3 text-white/30" />
-                  ) : action.count && action.count > 0 ? (
+                  {action.count && action.count > 0 ? (
                     <span className="px-2 py-0.5 bg-white/10 text-white/80 text-[10px]">{action.count}</span>
                   ) : (
                     <ArrowRight className="w-3 h-3 text-white/30 group-hover:text-white/60 transition-colors" />
@@ -344,12 +265,11 @@ export default function DashboardPage() {
             <p className="text-3xl font-light text-white mb-1">{stats.documentsCount}</p>
             <p className="text-[10px] text-white/50 uppercase tracking-wider">Documents</p>
           </Link>
-          <Link href={featuresUnlocked ? "/dashboard/projets" : "#"} className={`p-5 transition-colors group ${featuresUnlocked ? 'hover:bg-white/[0.02]' : 'opacity-50 cursor-not-allowed'}`}>
+          <Link href="/dashboard/projets" className="p-5 transition-colors group hover:bg-white/[0.02]">
             <div className="flex items-center justify-between mb-2">
               <FolderKanban className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors" />
-              {!featuresUnlocked && <Lock className="w-3 h-3 text-white/30" />}
             </div>
-            <p className="text-3xl font-light text-white mb-1">{featuresUnlocked ? stats.projectsCount : "—"}</p>
+            <p className="text-3xl font-light text-white mb-1">{stats.projectsCount}</p>
             <p className="text-[10px] text-white/50 uppercase tracking-wider">Projets</p>
           </Link>
         </div>
@@ -359,27 +279,21 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Available Features */}
         <div className="border border-white/10 p-6">
-          <p className="text-[10px] text-white/50 uppercase tracking-widest mb-5">Fonctionnalites disponibles</p>
+          <p className="text-[10px] text-white/50 uppercase tracking-widest mb-5">Fonctionnalités incluses</p>
           <div className="space-y-4">
             {[
-              { label: "Messagerie avec l equipe FluxDev", available: true },
-              { label: "Envoi et gestion de documents", available: true },
-              { label: "Suivi de projets en temps reel", available: featuresUnlocked },
-              { label: "Contrats et devis en ligne", available: featuresUnlocked },
-              { label: "Planning et calendrier partage", available: featuresUnlocked },
+              "Messagerie avec l'équipe FluxDev",
+              "Envoi et gestion de documents",
+              "Suivi de projets en temps réel",
+              "Contrats et devis en ligne",
+              "Planning et calendrier partagé",
             ].map((feature, index) => (
               <div 
                 key={index} 
                 className={`flex items-center gap-3 py-2 ${index !== 4 ? "border-b border-white/[0.04]" : ""}`}
               >
-                {feature.available ? (
-                  <Check className="w-3.5 h-3.5 text-white/60" />
-                ) : (
-                  <Lock className="w-3.5 h-3.5 text-white/30" />
-                )}
-                <span className={`text-sm font-light ${feature.available ? "text-white/80" : "text-white/40"}`}>
-                  {feature.label}
-                </span>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-sm font-light text-white/80">{feature}</span>
               </div>
             ))}
           </div>
@@ -387,59 +301,29 @@ export default function DashboardPage() {
 
         {/* Getting Started Guide */}
         <div className="border border-white/10 p-6">
-          <p className="text-[10px] text-white/50 uppercase tracking-widest mb-5">
-            {featuresUnlocked ? "Prochaines etapes" : "Pour commencer"}
-          </p>
+          <p className="text-[10px] text-white/50 uppercase tracking-widest mb-5">Pour commencer</p>
           <div className="space-y-4">
-            {featuresUnlocked ? (
-              <>
-                <div className="flex gap-4 py-2 border-b border-white/[0.04]">
-                  <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/60 text-xs">1</span>
-                  <div>
-                    <p className="text-white/80 text-sm font-light">Creez votre premier projet</p>
-                    <p className="text-white/50 text-xs font-light">Definissez les objectifs et le planning</p>
-                  </div>
-                </div>
-                <div className="flex gap-4 py-2 border-b border-white/[0.04]">
-                  <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/60 text-xs">2</span>
-                  <div>
-                    <p className="text-white/80 text-sm font-light">Suivez l avancement</p>
-                    <p className="text-white/50 text-xs font-light">Consultez les mises a jour en temps reel</p>
-                  </div>
-                </div>
-                <div className="flex gap-4 py-2">
-                  <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/60 text-xs">3</span>
-                  <div>
-                    <p className="text-white/80 text-sm font-light">Validez les livrables</p>
-                    <p className="text-white/50 text-xs font-light">Approuvez chaque etape du projet</p>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex gap-4 py-2 border-b border-white/[0.04]">
-                  <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/60 text-xs">1</span>
-                  <div>
-                    <p className="text-white/80 text-sm font-light">Presentez votre projet</p>
-                    <p className="text-white/50 text-xs font-light">Utilisez la messagerie pour decrire votre besoin</p>
-                  </div>
-                </div>
-                <div className="flex gap-4 py-2 border-b border-white/[0.04]">
-                  <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/60 text-xs">2</span>
-                  <div>
-                    <p className="text-white/80 text-sm font-light">Partagez vos documents</p>
-                    <p className="text-white/50 text-xs font-light">Cahier des charges, maquettes, references</p>
-                  </div>
-                </div>
-                <div className="flex gap-4 py-2">
-                  <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/60 text-xs">3</span>
-                  <div>
-                    <p className="text-white/80 text-sm font-light">Recevez votre devis</p>
-                    <p className="text-white/50 text-xs font-light">Notre equipe vous repondra sous 24h</p>
-                  </div>
-                </div>
-              </>
-            )}
+            <div className="flex gap-4 py-2 border-b border-white/[0.04]">
+              <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/60 text-xs">1</span>
+              <div>
+                <p className="text-white/80 text-sm font-light">Présentez votre projet</p>
+                <p className="text-white/50 text-xs font-light">Utilisez la messagerie pour décrire votre besoin</p>
+              </div>
+            </div>
+            <div className="flex gap-4 py-2 border-b border-white/[0.04]">
+              <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/60 text-xs">2</span>
+              <div>
+                <p className="text-white/80 text-sm font-light">Partagez vos documents</p>
+                <p className="text-white/50 text-xs font-light">Cahier des charges, maquettes, références</p>
+              </div>
+            </div>
+            <div className="flex gap-4 py-2">
+              <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/60 text-xs">3</span>
+              <div>
+                <p className="text-white/80 text-sm font-light">Recevez votre devis</p>
+                <p className="text-white/50 text-xs font-light">Notre équipe vous répondra sous 24h</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

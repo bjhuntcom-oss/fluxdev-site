@@ -47,7 +47,7 @@ export async function POST() {
       return NextResponse.json({ message: 'User updated', userId });
     }
 
-    // Create new user
+    // Create new user with full access
     const { error } = await supabase.from('users').insert({
       clerk_id: userId,
       email: primaryEmail,
@@ -55,8 +55,8 @@ export async function POST() {
       last_name: user.lastName || null,
       avatar_url: user.imageUrl || null,
       role: 'user',
-      status: 'pending',
-      features_unlocked: false,
+      status: 'active',
+      features_unlocked: true,
       notifications_email: true,
       notifications_messages: true,
       notifications_updates: true,

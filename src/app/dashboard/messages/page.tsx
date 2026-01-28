@@ -950,17 +950,21 @@ export default function MessagesPage() {
               )}
               
               <div className="flex items-end gap-3">
-                <label className="p-2.5 hover:bg-white/[0.04] transition-colors cursor-pointer">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2.5 hover:bg-white/[0.04] transition-colors cursor-pointer"
+                >
                   <Paperclip className="w-4 h-4 text-white/40" />
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    className="hidden"
-                    accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.doc,.docx,.xls,.xlsx,.zip,.txt"
-                    multiple
-                    onChange={handleFileSelect}
-                  />
-                </label>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.doc,.docx,.xls,.xlsx,.zip,.txt"
+                  multiple
+                  onChange={handleFileSelect}
+                />
                 <div className="flex-1 relative">
                   <textarea
                     value={newMessage}
