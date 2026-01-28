@@ -75,6 +75,7 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [showNewConversation, setShowNewConversation] = useState(false);
   const [newSubject, setNewSubject] = useState("");
   const [showArchived, setShowArchived] = useState(false);
@@ -349,8 +350,9 @@ export default function MessagesPage() {
   };
 
   const createConversation = async () => {
-    if (!newSubject.trim()) return;
+    if (!newSubject.trim() || isCreating) return;
 
+    setIsCreating(true);
     try {
       const userData = await getOrCreateUser();
 
@@ -377,6 +379,8 @@ export default function MessagesPage() {
       setNewSubject("");
     } catch (error) {
       console.error("Error creating conversation:", error);
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -527,9 +531,9 @@ export default function MessagesPage() {
               </button>
               <button
                 onClick={() => setShowNewConversation(true)}
-                className="p-1.5 hover:bg-white/[0.04] transition-colors"
+                className="p-1.5 hover:bg-white/[0.08] transition-all duration-200 active:scale-90 hover:text-white"
               >
-                <Plus className="w-4 h-4 text-white/50" />
+                <Plus className="w-4 h-4 text-white/50 hover:text-white transition-colors" />
               </button>
             </div>
           </div>
@@ -557,9 +561,9 @@ export default function MessagesPage() {
               {!showArchived && (
                 <button
                   onClick={() => setShowNewConversation(true)}
-                  className="mt-2 text-white/60 hover:text-white text-sm transition-colors"
+                  className="mt-3 px-4 py-2 bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 text-sm transition-all duration-200 active:scale-95"
                 >
-                  Demarrer une conversation
+                  + Démarrer une conversation
                 </button>
               )}
             </div>
@@ -787,9 +791,13 @@ export default function MessagesPage() {
                 <button
                   onClick={sendMessage}
                   disabled={!newMessage.trim() || isSending}
-                  className="p-2.5 bg-white text-black hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-2.5 bg-white text-black hover:bg-white/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
-                  <Send className="w-4 h-4" />
+                  {isSending ? (
+                    <div className="w-4 h-4 border-2 border-black/20 border-t-black animate-spin rounded-full" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -912,18 +920,19 @@ export default function MessagesPage() {
       {/* New Conversation Modal */}
       {showNewConversation && (
         <div
-          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowNewConversation(false)}
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => !isCreating && setShowNewConversation(false)}
         >
           <div
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
-            className="bg-[#0a0a0a] border border-white/[0.06] p-6 w-full max-w-md"
+            className="bg-[#0a0a0a] border border-white/[0.08] p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200"
           >
             <div className="flex items-center justify-between mb-6">
               <p className="text-[10px] text-white/40 uppercase tracking-widest">Nouvelle conversation</p>
               <button
-                onClick={() => setShowNewConversation(false)}
-                className="p-1.5 hover:bg-white/[0.04] transition-colors"
+                onClick={() => !isCreating && setShowNewConversation(false)}
+                disabled={isCreating}
+                className="p-1.5 hover:bg-white/[0.06] transition-all duration-200 active:scale-90 disabled:opacity-50"
               >
                 <X className="w-4 h-4 text-white/40" />
               </button>
@@ -936,17 +945,32 @@ export default function MessagesPage() {
                   type="text"
                   value={newSubject}
                   onChange={(e) => setNewSubject(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newSubject.trim() && !isCreating) {
+                      e.preventDefault();
+                      createConversation();
+                    }
+                  }}
                   placeholder="Ex: Question sur mon projet..."
-                  className="w-full bg-white/[0.03] border border-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/10"
+                  className="w-full bg-white/[0.03] border border-white/[0.08] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/20 transition-colors"
+                  autoFocus
+                  disabled={isCreating}
                 />
               </div>
               
               <button
                 onClick={createConversation}
-                disabled={!newSubject.trim()}
-                className="w-full py-3 bg-white text-black text-sm font-medium hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!newSubject.trim() || isCreating}
+                className="w-full py-3 bg-white text-black text-sm font-medium hover:bg-white/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                Demarrer la conversation
+                {isCreating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-black/20 border-t-black animate-spin rounded-full" />
+                    <span>Création en cours...</span>
+                  </>
+                ) : (
+                  <span>Démarrer la conversation</span>
+                )}
               </button>
             </div>
           </div>
