@@ -374,6 +374,9 @@ export default function MessagesPage() {
         .from("conversations")
         .update({ updated_at: new Date().toISOString() })
         .eq("id", selectedConversation);
+      
+      // Reload messages to show the new one
+      await loadMessages(selectedConversation);
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
