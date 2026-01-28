@@ -101,8 +101,12 @@ export default function MessagesPage() {
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Max file size: 10MB
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -132,8 +136,25 @@ export default function MessagesPage() {
             table: "messages",
             filter: `conversation_id=eq.${selectedConversation}`,
           },
-          (payload) => {
-            setMessages((prev) => [...prev, payload.new as Message]);
+          async (payload) => {
+            // Fetch complete message with sender info
+            const { data: fullMessage } = await supabase
+              .from("messages")
+              .select(`
+                *,
+                sender:users(first_name, last_name, avatar_url, role)
+              `)
+              .eq("id", payload.new.id)
+              .single();
+            
+            if (fullMessage) {
+              setMessages((prev) => {
+                // Avoid duplicates
+                if (prev.some(m => m.id === fullMessage.id)) return prev;
+                return [...prev, fullMessage as Message];
+              });
+              scrollToBottom();
+            }
           }
         )
         .subscribe();
@@ -481,8 +502,20 @@ export default function MessagesPage() {
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      setPendingFiles(prev => [...prev, ...files]);
+    setUploadError(null);
+    
+    // Validate file sizes
+    const validFiles: File[] = [];
+    for (const file of files) {
+      if (file.size > MAX_FILE_SIZE) {
+        setUploadError(`"${file.name}" dépasse 10MB`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+    
+    if (validFiles.length > 0) {
+      setPendingFiles(prev => [...prev, ...validFiles]);
     }
     e.target.value = '';
   };
@@ -872,6 +905,16 @@ export default function MessagesPage() {
 
             {/* Input Area */}
             <div className="p-4 border-t border-white/[0.06]">
+              {/* Upload Error */}
+              {uploadError && (
+                <div className="mb-2 px-3 py-2 bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-between">
+                  <span>{uploadError}</span>
+                  <button onClick={() => setUploadError(null)} className="ml-2 hover:text-red-300">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              
               {/* Pending Files Preview */}
               {pendingFiles.length > 0 && (
                 <div className="mb-3 flex flex-wrap gap-2">
