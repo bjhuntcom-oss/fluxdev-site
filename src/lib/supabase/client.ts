@@ -40,8 +40,13 @@ export function initClerkId(clerkId: string | null) {
   }
 }
 
-// No-op for compatibility
-export async function ensureClerkId() {}
+// Ensure clerk_id is set - accepts optional clerkId to initialize
+export async function ensureClerkId(clerkId?: string | null) {
+  if (clerkId && clerkId !== currentClerkId) {
+    currentClerkId = clerkId;
+    supabaseInstance = createSupabaseClient();
+  }
+}
 
 // Get current clerk_id
 export function getClerkId() {

@@ -146,7 +146,7 @@ export default function MessagesPage() {
     setIsLoading(true);
     try {
       // Ensure clerk_id is set for RLS
-      await ensureClerkId();
+      await ensureClerkId(user?.id);
       
       // Get current user ID and role
       const { data: userData } = await supabase
@@ -268,7 +268,7 @@ export default function MessagesPage() {
 
   const loadMessages = async (conversationId: string) => {
     try {
-      await ensureClerkId();
+      await ensureClerkId(user?.id);
       
       // Get current user ID
       const { data: userData } = await supabase
@@ -316,14 +316,17 @@ export default function MessagesPage() {
     if (!newSubject.trim()) return;
 
     try {
-      await ensureClerkId();
+      await ensureClerkId(user?.id);
       const { data: userData } = await supabase
         .from("users")
         .select("id")
         .eq("clerk_id", user?.id)
         .single();
 
-      if (!userData) return;
+      if (!userData) {
+        console.error("User not found in database for clerk_id:", user?.id);
+        return;
+      }
 
       const { data, error } = await supabase
         .from("conversations")
@@ -351,7 +354,7 @@ export default function MessagesPage() {
 
     setIsSending(true);
     try {
-      await ensureClerkId();
+      await ensureClerkId(user?.id);
       const { data: userData } = await supabase
         .from("users")
         .select("id")
