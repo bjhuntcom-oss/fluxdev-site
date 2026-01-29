@@ -30,14 +30,13 @@ interface NavItem {
   icon: React.ReactNode;
   roles?: string[];
   badge?: number;
-  locked?: boolean;
 }
 
 const navItems: NavItem[] = [
   { label: "Tableau de bord", href: "/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
   { label: "Messages", href: "/dashboard/messages", icon: <MessageSquare className="w-4 h-4" /> },
   { label: "Documents", href: "/dashboard/documents", icon: <FileText className="w-4 h-4" /> },
-  { label: "Projets", href: "/dashboard/projets", icon: <FolderKanban className="w-4 h-4" />, locked: true },
+  { label: "Projets", href: "/dashboard/projets", icon: <FolderKanban className="w-4 h-4" /> },
   { label: "Parametres", href: "/dashboard/parametres", icon: <Settings className="w-4 h-4" /> },
 ];
 
@@ -64,7 +63,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<string>("user");
-  const [featuresUnlocked, setFeaturesUnlocked] = useState(false);
   const { isSynced, isLoading: isSyncing, error: syncError } = useUserSync();
 
   useEffect(() => {
@@ -77,19 +75,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         // Fetch role from Supabase (source of truth)
         const { data: userData } = await supabase
           .from('users')
-          .select('role, features_unlocked, status')
+          .select('role')
           .eq('clerk_id', user.id)
           .single();
 
         if (userData) {
           setUserRole(userData.role || 'user');
-          setFeaturesUnlocked(userData.features_unlocked || false);
         } else {
           // Fallback to Clerk metadata
           const role = (user.publicMetadata?.role as string) || "user";
-          const unlocked = (user.publicMetadata?.features_unlocked as boolean) || false;
           setUserRole(role);
-          setFeaturesUnlocked(unlocked);
         }
       }
     }
@@ -111,30 +106,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return roles.includes(userRole);
   };
 
-  const isLocked = (item: NavItem) => {
-    return item.locked && !featuresUnlocked && userRole === "user";
-  };
-
   const NavLink = ({ item }: { item: NavItem }) => {
     const isActive = pathname === item.href;
-    const locked = isLocked(item);
 
     if (!canAccess(item.roles)) return null;
 
     return (
       <Link
-        href={locked ? "#" : item.href}
-        onClick={(e) => {
-          if (locked) {
-            e.preventDefault();
-          } else {
-            setSidebarOpen(false);
-          }
-        }}
+        href={item.href}
+        onClick={() => setSidebarOpen(false)}
         className={`
           flex items-center gap-3 px-4 py-2.5 transition-all relative
           ${isActive ? "bg-white/[0.06] text-white" : "text-white/60 hover:text-white hover:bg-white/[0.03]"}
-          ${locked ? "opacity-40 cursor-not-allowed" : ""}
         `}
       >
         {isActive && (
@@ -142,9 +125,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         )}
         {item.icon}
         <span className="text-sm font-light">{item.label}</span>
-        {locked && (
-          <span className="ml-auto text-[10px] text-white/40 uppercase tracking-wider">Locked</span>
-        )}
         {item.badge && (
           <span className="ml-auto text-[10px] text-white/70">{item.badge}</span>
         )}

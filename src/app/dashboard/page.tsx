@@ -29,9 +29,6 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
-  // All features unlocked by default - no validation needed
-  const [featuresUnlocked] = useState(true);
-  const [userStatus] = useState<string>("active");
   const [stats, setStats] = useState<DashboardStats>({
     unreadMessages: 0,
     documentsCount: 0,
