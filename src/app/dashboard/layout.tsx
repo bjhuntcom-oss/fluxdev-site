@@ -64,7 +64,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userRole, setUserRole] = useState<string>("user");
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [roleLoaded, setRoleLoaded] = useState(false);
   const { isSynced, isLoading: isSyncing, error: syncError } = useUserSync();
 
   useEffect(() => {
@@ -88,12 +89,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           const role = (user.publicMetadata?.role as string) || "user";
           setUserRole(role);
         }
+        setRoleLoaded(true);
       }
     }
     fetchUserRole();
   }, [isLoaded, user]);
 
-  if (!isLoaded || isSyncing) {
+  // Client-side role-based access control
+  useEffect(() => {
+    if (!isLoaded || isSyncing || !roleLoaded || !userRole) return;
+    
+    const isAdminRoute = pathname.startsWith('/dashboard/admin');
+    const isStaffRoute = pathname.startsWith('/dashboard/staff');
+    const isDevRoute = pathname.startsWith('/dashboard/dev');
+    
+    // Redirect if user doesn't have access
+    if (isAdminRoute && userRole !== 'admin') {
+      router.replace('/dashboard');
+    } else if (isStaffRoute && !['staff', 'admin'].includes(userRole)) {
+      router.replace('/dashboard');
+    } else if (isDevRoute && !['dev', 'admin'].includes(userRole)) {
+      router.replace('/dashboard');
+    }
+  }, [pathname, userRole, isLoaded, isSyncing, roleLoaded, router]);
+
+  // Show loading while role is being fetched
+  if (!isLoaded || isSyncing || !roleLoaded) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
         <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -105,6 +126,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const canAccess = (roles?: string[]) => {
     if (!roles) return true;
+    if (!userRole) return false;
     return roles.includes(userRole);
   };
 

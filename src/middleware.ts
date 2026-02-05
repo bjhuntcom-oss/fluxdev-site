@@ -1,4 +1,4 @@
-import { clerkMiddleware, createRouteMatcher, clerkClient } from '@clerk/nextjs/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 /**
@@ -43,30 +43,13 @@ const isStaffRoute = createRouteMatcher(['/dashboard/staff(.*)']);
 const isDevRoute = createRouteMatcher(['/dashboard/dev(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth();
-
   if (!isPublicRoute(req)) {
     await auth.protect();
   }
 
-  if (userId) {
-    // Get user's publicMetadata to check role
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId);
-    const role = (user.publicMetadata?.role as string) || 'user';
-
-    if (isAdminRoute(req) && role !== 'admin') {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
-
-    if (isStaffRoute(req) && !['staff', 'admin'].includes(role)) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
-
-    if (isDevRoute(req) && !['dev', 'admin'].includes(role)) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
-  }
+  // Role-based access control is handled client-side in layout.tsx
+  // This ensures Supabase is the single source of truth for roles
+  // Clerk publicMetadata can be out of sync with Supabase
 
   // Create response with decoy headers
   const response = NextResponse.next();
