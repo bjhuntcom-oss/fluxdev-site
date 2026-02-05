@@ -26,6 +26,7 @@ interface Document {
   file_type: string;
   file_size: number;
   file_url: string;
+  storage_path: string;
   document_type: string;
   is_contract: boolean;
   created_at: string;
@@ -291,7 +292,7 @@ export default function DocumentsPage() {
     try {
       const { error: storageError } = await supabase.storage
         .from("documents")
-        .remove([doc.file_url.split("/documents/")[1]]);
+        .remove([doc.storage_path]);
 
       if (storageError) console.error("Storage error:", storageError);
 

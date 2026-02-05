@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { MessageSquare, Search, Clock, CheckCircle, AlertCircle, User } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
@@ -23,19 +24,29 @@ interface Conversation {
 }
 
 export default function StaffConversationsPage() {
+  const { user: clerkUser } = useUser();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
   useEffect(() => {
-    loadConversations();
-  }, []);
+    if (clerkUser) {
+      loadConversations();
+    }
+  }, [clerkUser]);
 
   const loadConversations = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Get current user role to apply proper filtering
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, role')
+        .eq('clerk_id', clerkUser?.id)
+        .single();
+
+      let query = supabase
         .from('conversations')
         .select(`
           *,
@@ -43,10 +54,15 @@ export default function StaffConversationsPage() {
         `)
         .order('updated_at', { ascending: false });
 
+      // Staff/Dev only see conversations assigned to them; Admin sees all
+      if (userData && userData.role !== 'admin') {
+        query = query.eq('assigned_staff_id', userData.id);
+      }
+
+      const { data, error } = await query;
+
       if (error) {
-        // Handle case where foreign key relationship fails
         if (error.code === 'PGRST200') {
-          // Try simpler query without joins
           const { data: simpleData } = await supabase
             .from('conversations')
             .select('*')

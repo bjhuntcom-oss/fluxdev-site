@@ -22,7 +22,7 @@ import {
 import { useState, useEffect, useRef } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { useUserSync } from "@/hooks/useUserSync";
-import { supabase, initClerkId, ensureClerkId } from "@/lib/supabase/client";
+import { supabase, initClerkId } from "@/lib/supabase/client";
 import { ToastProvider } from "@/components/ui/Toast";
 import { NotificationDropdown } from "@/components/ui/NotificationDropdown";
 
@@ -69,13 +69,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [roleLoaded, setRoleLoaded] = useState(false);
   const { isSynced, isLoading: isSyncing, error: syncError } = useUserSync();
 
+  // Initialize clerk_id SYNCHRONOUSLY during render to avoid race condition
+  // Child component effects fire before parent effects, so we need the header set before any effects run
+  if (isLoaded && user?.id) {
+    initClerkId(user.id);
+  }
+
   useEffect(() => {
     async function fetchUserRole() {
       if (isLoaded && user) {
-        // Initialize clerk_id for RLS policies
-        await initClerkId(user.id);
-        await ensureClerkId();
-        
         // Fetch role and ID from Supabase (source of truth)
         const { data: userData } = await supabase
           .from('users')

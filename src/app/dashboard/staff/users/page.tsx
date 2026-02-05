@@ -106,7 +106,9 @@ export default function StaffUsersPage() {
         .from('conversations')
         .select('id')
         .eq('user_id', targetUser.id)
-        .single();
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
       if (existingConv) {
         // Navigate to existing conversation

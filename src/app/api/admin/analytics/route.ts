@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
     const { count: activeProjects } = await supabase
       .from('projects')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'in_progress');
+      .eq('status', 'active');
 
     // Fetch message stats
     const { count: totalMessages } = await supabase
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
     const { count: unreadMessages } = await supabase
       .from('messages')
       .select('*', { count: 'exact', head: true })
-      .eq('read', false);
+      .eq('is_read', false);
 
     // Fetch recent activity
     const { data: recentActivity } = await supabase
