@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createAdminSupabaseClient } from '@/lib/supabase/server';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/security';
 
 export async function GET(req: NextRequest) {
@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }
 
-    // Get Supabase client
-    const supabase = await createServerSupabaseClient();
+    // Get Supabase client (admin to bypass RLS)
+    const supabase = createAdminSupabaseClient();
 
     // Verify admin role
     const { data: userData, error: userError } = await supabase

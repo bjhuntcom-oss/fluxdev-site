@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createAdminSupabaseClient } from '@/lib/supabase/server';
 
 export async function PATCH(
   req: NextRequest,
@@ -13,7 +13,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = createAdminSupabaseClient();
     
     // Check if current user is admin
     const { data: currentUser } = await supabase
@@ -95,7 +95,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = createAdminSupabaseClient();
     
     // Check if current user is admin or staff
     const { data: currentUser } = await supabase
