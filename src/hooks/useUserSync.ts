@@ -19,13 +19,17 @@ export function useUserSync() {
       try {
         // Check if user exists
         const checkRes = await fetch('/api/user/sync');
-        const checkData = await checkRes.json();
-
-        if (checkData.exists) {
-          // User already exists, we're good
-          setIsSynced(true);
-          setIsLoading(false);
-          return;
+        
+        if (checkRes.ok) {
+          const checkData = await checkRes.json();
+          if (checkData.exists) {
+            setIsSynced(true);
+            setIsLoading(false);
+            return;
+          }
+        } else {
+          // GET failed (500/503) - don't block, just try POST once
+          console.warn(`User sync check returned ${checkRes.status}, attempting sync...`);
         }
 
         // Try to sync user to Supabase
@@ -36,7 +40,7 @@ export function useUserSync() {
         } else {
           // Don't block the dashboard - just log and continue
           console.warn('User sync failed, continuing without sync');
-          setIsSynced(true); // Allow access anyway
+          setIsSynced(true);
         }
         
         setIsLoading(false);

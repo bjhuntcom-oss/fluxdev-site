@@ -1,6 +1,6 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import { createAdminSupabaseClient } from '@/lib/supabase/server';
+import { createAdminSupabaseClient, createServerSupabaseClient } from '@/lib/supabase/server';
 
 export async function POST() {
   try {
@@ -16,7 +16,15 @@ export async function POST() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const supabase = createAdminSupabaseClient();
+    let supabase;
+    try {
+      supabase = createAdminSupabaseClient();
+    } catch (e) {
+      console.error('Admin client unavailable for sync:', e);
+      // If admin client is unavailable, user creation will rely on webhooks
+      return NextResponse.json({ error: 'Service temporarily unavailable', fallback: true }, { status: 503 });
+    }
+
     const primaryEmail = user.emailAddresses[0]?.emailAddress;
 
     // Check if user already exists
@@ -69,7 +77,7 @@ export async function POST() {
 
     return NextResponse.json({ message: 'User created', userId });
   } catch (error) {
-    console.error('Sync error:', error);
+    console.error('Sync POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -82,7 +90,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createAdminSupabaseClient();
+    // Use server client (not admin) - users table has SELECT USING (true) policy
+    const supabase = await createServerSupabaseClient();
 
     const { data: user, error } = await supabase
       .from('users')
@@ -96,7 +105,7 @@ export async function GET() {
 
     return NextResponse.json({ exists: true, user });
   } catch (error) {
-    console.error('Check error:', error);
+    console.error('Sync GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
