@@ -230,7 +230,8 @@ export default function MessagesPage() {
         .from("conversations")
         .select(`
           *,
-          user:users!conversations_user_id_fkey(first_name, last_name, role, email)
+          user:users!conversations_user_id_fkey(first_name, last_name, role, email),
+          assigned_staff:users!conversations_assigned_staff_id_fkey(first_name, last_name, role, email)
         `)
         .order("updated_at", { ascending: false });
 
@@ -490,7 +491,7 @@ export default function MessagesPage() {
       const { error } = await supabase.from("messages").insert({
         conversation_id: selectedConversation,
         sender_id: userData.id,
-        content: sanitizeInput(newMessage) || (attachments.length > 0 ? '' : ''),
+        content: sanitizeInput(newMessage) || '',
         attachments: attachments.length > 0 ? attachments : null,
       });
 
@@ -814,6 +815,8 @@ export default function MessagesPage() {
                   <MoreVertical className="w-4 h-4 text-white/40" />
                 </button>
                 {showMenu && (
+                  <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
                   <div className="absolute right-0 top-full mt-1 bg-[#0a0a0a] border border-white/10 min-w-[160px] z-50">
                     <button
                       onClick={() => archiveConversation(selectedConversation)}
@@ -832,6 +835,7 @@ export default function MessagesPage() {
                       )}
                     </button>
                   </div>
+                  </>
                 )}
               </div>
             </div>
