@@ -65,6 +65,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [supabaseUserId, setSupabaseUserId] = useState<string | null>(null);
   const [roleLoaded, setRoleLoaded] = useState(false);
   const { isSynced, isLoading: isSyncing, error: syncError } = useUserSync();
 
@@ -75,15 +76,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         await initClerkId(user.id);
         await ensureClerkId();
         
-        // Fetch role from Supabase (source of truth)
+        // Fetch role and ID from Supabase (source of truth)
         const { data: userData } = await supabase
           .from('users')
-          .select('role')
+          .select('id, role')
           .eq('clerk_id', user.id)
           .single();
 
         if (userData) {
           setUserRole(userData.role || 'user');
+          setSupabaseUserId(userData.id);
         } else {
           // Fallback to Clerk metadata
           const role = (user.publicMetadata?.role as string) || "user";
@@ -273,7 +275,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             
             <div className="flex items-center gap-4">
-              {user && <NotificationDropdown userId={user.id} />}
+              {supabaseUserId && <NotificationDropdown userId={supabaseUserId} />}
             </div>
           </div>
         </header>
