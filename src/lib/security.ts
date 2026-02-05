@@ -20,16 +20,73 @@ export function sanitizeInput(input: string): string {
 }
 
 export function sanitizeHtml(html: string): string {
-  // Basic HTML sanitization - strips dangerous tags
-  const allowedTags = ['b', 'i', 'em', 'strong', 'a', 'p', 'br'];
-  const tagRegex = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi;
+  // Strict HTML sanitization - strips all dangerous content
+  const allowedTags = ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li'];
+  const allowedAttributes = ['href', 'title', 'target', 'rel'];
+  const dangerousPatterns = [
+    /javascript:/gi,
+    /data:/gi,
+    /vbscript:/gi,
+    /on\w+\s*=/gi,
+    /expression\s*\(/gi,
+    /<script[^>]*>[\s\S]*?<\/script>/gi,
+    /<style[^>]*>[\s\S]*?<\/style>/gi,
+    /<iframe[^>]*>[\s\S]*?<\/iframe>/gi,
+    /<object[^>]*>[\s\S]*?<\/object>/gi,
+    /<embed[^>]*>/gi,
+    /<form[^>]*>[\s\S]*?<\/form>/gi,
+  ];
   
-  return html.replace(tagRegex, (match, tag) => {
-    if (allowedTags.includes(tag.toLowerCase())) {
-      // Remove event handlers and dangerous attributes
-      return match.replace(/\s(on\w+|javascript:|data:)/gi, '');
+  let sanitized = html;
+  
+  // Remove dangerous patterns first
+  for (const pattern of dangerousPatterns) {
+    sanitized = sanitized.replace(pattern, '');
+  }
+  
+  // Process remaining tags
+  const tagRegex = /<\/?([a-z][a-z0-9]*)\b([^>]*)>/gi;
+  
+  return sanitized.replace(tagRegex, (match, tag, attrs) => {
+    const tagLower = tag.toLowerCase();
+    if (!allowedTags.includes(tagLower)) {
+      return '';
     }
-    return '';
+    
+    // For closing tags, just return them
+    if (match.startsWith('</')) {
+      return `</${tagLower}>`;
+    }
+    
+    // Filter attributes for opening tags
+    const filteredAttrs: string[] = [];
+    const attrRegex = /(\w+)\s*=\s*["']([^"']*)["']/gi;
+    let attrMatch;
+    
+    while ((attrMatch = attrRegex.exec(attrs)) !== null) {
+      const [, attrName, attrValue] = attrMatch;
+      if (allowedAttributes.includes(attrName.toLowerCase())) {
+        // Extra check for href to prevent javascript: URLs
+        if (attrName.toLowerCase() === 'href') {
+          const cleanValue = attrValue.trim().toLowerCase();
+          if (cleanValue.startsWith('javascript:') || cleanValue.startsWith('data:')) {
+            continue;
+          }
+        }
+        filteredAttrs.push(`${attrName}="${attrValue}"`);
+      }
+    }
+    
+    // Add rel="noopener noreferrer" to links with target
+    if (tagLower === 'a' && filteredAttrs.some((a: string) => a.includes('target='))) {
+      if (!filteredAttrs.some((a: string) => a.includes('rel='))) {
+        filteredAttrs.push('rel="noopener noreferrer"');
+      }
+    }
+    
+    return filteredAttrs.length > 0 
+      ? `<${tagLower} ${filteredAttrs.join(' ')}>`
+      : `<${tagLower}>`;
   });
 }
 
@@ -82,26 +139,15 @@ export function validatePhone(phone: string): boolean {
 
 export function generateCSRFToken(): string {
   const array = new Uint8Array(32);
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    crypto.getRandomValues(array);
-  } else {
-    // Fallback for server-side
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
-  }
+  // Use Web Crypto API (available in Node.js 19+ and all modern browsers)
+  crypto.getRandomValues(array);
   return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 export function generateSecureToken(length: number = 32): string {
   const array = new Uint8Array(length);
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    crypto.getRandomValues(array);
-  } else {
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
-  }
+  // Use Web Crypto API (available in Node.js 19+ and all modern browsers)
+  crypto.getRandomValues(array);
   return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 

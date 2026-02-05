@@ -19,10 +19,12 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { useUserSync } from "@/hooks/useUserSync";
 import { supabase, initClerkId, ensureClerkId } from "@/lib/supabase/client";
+import { ToastProvider } from "@/components/ui/Toast";
+import { NotificationDropdown } from "@/components/ui/NotificationDropdown";
 
 interface NavItem {
   label: string;
@@ -133,6 +135,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
+    <ToastProvider>
     <div className="h-screen bg-black flex overflow-hidden">
       {/* Mobile Menu Button */}
       <button
@@ -248,9 +251,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             
             <div className="flex items-center gap-4">
-              <button className="relative p-2 text-white/40 hover:text-white transition-colors">
-                <Bell className="w-4 h-4" />
-              </button>
+              {user && <NotificationDropdown userId={user.id} />}
             </div>
           </div>
         </header>
@@ -261,5 +262,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </main>
     </div>
+    </ToastProvider>
   );
 }

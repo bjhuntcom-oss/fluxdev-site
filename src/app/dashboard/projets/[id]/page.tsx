@@ -39,6 +39,8 @@ export default function ProjectDetailPage() {
   const { user } = useUser();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
+  const [userRole, setUserRole] = useState<string>('user');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ 
     title: '', 
@@ -53,13 +55,23 @@ export default function ProjectDetailPage() {
   const [showAddTask, setShowAddTask] = useState(false);
 
   useEffect(() => {
-    if (params.id) {
+    if (params.id && user) {
       loadProject();
     }
-  }, [params.id]);
+  }, [params.id, user]);
 
   const loadProject = async () => {
     try {
+      // Get current user's role and ID
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, role')
+        .eq('clerk_id', user?.id)
+        .single();
+
+      const role = userData?.role || 'user';
+      setUserRole(role);
+
       const { data, error } = await supabase
         .from('projects')
         .select('*')
@@ -67,6 +79,13 @@ export default function ProjectDetailPage() {
         .single();
 
       if (error) throw error;
+
+      // Check authorization: admin/staff/dev can see all, users only their own
+      if (!['admin', 'staff', 'dev'].includes(role) && data.user_id !== userData?.id) {
+        setUnauthorized(true);
+        return;
+      }
+
       setProject(data);
       setEditForm({ 
         title: data.title, 
@@ -216,6 +235,19 @@ export default function ProjectDetailPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-6 h-6 border border-white/20 border-t-white/60 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (unauthorized) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="w-12 h-12 text-red-400/40 mx-auto mb-4" />
+        <p className="text-white/60">Accès non autorisé</p>
+        <p className="text-white/40 text-sm mt-1">Vous n'avez pas la permission de voir ce projet.</p>
+        <Link href="/dashboard/projets" className="text-white/40 hover:text-white/60 text-sm mt-4 inline-block">
+          Retour aux projets
+        </Link>
       </div>
     );
   }

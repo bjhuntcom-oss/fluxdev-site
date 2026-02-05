@@ -2,6 +2,7 @@
 
 import { useUser } from "@clerk/nextjs";
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { 
   Send, 
   Paperclip, 
@@ -25,6 +26,7 @@ import { supabase, ensureClerkId } from "@/lib/supabase/client";
 import { sanitizeInput } from "@/lib/security";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useToast } from "@/components/ui/Toast";
 
 interface Attachment {
   name: string;
@@ -82,6 +84,8 @@ interface StaffMember {
 
 export default function MessagesPage() {
   const { user } = useUser();
+  const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -121,6 +125,17 @@ export default function MessagesPage() {
       loadConversations();
     }
   }, [user]);
+
+  // Handle URL parameter ?conv=id to auto-select conversation
+  useEffect(() => {
+    const convId = searchParams.get('conv');
+    if (convId && conversations.length > 0) {
+      const exists = conversations.some(c => c.id === convId);
+      if (exists) {
+        setSelectedConversation(convId);
+      }
+    }
+  }, [searchParams, conversations]);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -242,7 +257,7 @@ export default function MessagesPage() {
       }
 
       // Get unread count for each conversation
-      if (data && currentUserId) {
+      if (data && currentUserIdValue) {
         const conversationsWithUnread = await Promise.all(
           data.map(async (conv) => {
             const { count } = await supabase
@@ -250,7 +265,7 @@ export default function MessagesPage() {
               .select("*", { count: "exact", head: true })
               .eq("conversation_id", conv.id)
               .eq("is_read", false)
-              .neq("sender_id", currentUserId);
+              .neq("sender_id", currentUserIdValue);
             
             return { ...conv, unread_count: count || 0 };
           })
@@ -493,6 +508,7 @@ export default function MessagesPage() {
       await loadMessages(selectedConversation);
     } catch (error) {
       console.error("Error sending message:", error);
+      showToast("Erreur lors de l'envoi du message", "error");
     } finally {
       setIsSending(false);
       setIsUploading(false);
@@ -953,9 +969,14 @@ export default function MessagesPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-2.5 hover:bg-white/[0.04] transition-colors cursor-pointer"
+                  className="p-2.5 hover:bg-white/[0.04] transition-colors cursor-pointer relative"
                 >
-                  <Paperclip className="w-4 h-4 text-white/40" />
+                  <Paperclip className={`w-4 h-4 ${pendingFiles.length > 0 ? 'text-blue-400' : 'text-white/40'}`} />
+                  {pendingFiles.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-[10px] flex items-center justify-center">
+                      {pendingFiles.length}
+                    </span>
+                  )}
                 </button>
                 <input
                   ref={fileInputRef}

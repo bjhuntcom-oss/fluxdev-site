@@ -28,13 +28,18 @@ export async function createServerSupabaseClient() {
 }
 
 export function createAdminSupabaseClient() {
-  // Use service_role key if available, otherwise fallback to anon key
-  // (RLS is disabled so anon key works for server-side operations)
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!serviceRoleKey) {
+    throw new Error(
+      'SUPABASE_SERVICE_ROLE_KEY is required for admin operations. ' +
+      'Please set this environment variable.'
+    );
+  }
   
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    key,
+    serviceRoleKey,
     {
       auth: {
         autoRefreshToken: false,

@@ -18,6 +18,7 @@ import { supabase } from "@/lib/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { sanitizeInput } from "@/lib/security";
+import { useToast } from "@/components/ui/Toast";
 
 interface Document {
   id: string;
@@ -52,8 +53,11 @@ const formatFileSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
+const ITEMS_PER_PAGE = 12;
+
 export default function DocumentsPage() {
   const { user } = useUser();
+  const { showToast } = useToast();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -65,6 +69,7 @@ export default function DocumentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (user) {
@@ -273,6 +278,7 @@ export default function DocumentsPage() {
     } catch (error) {
       console.error("Error uploading document:", error);
       setError("Erreur lors de l'upload du document");
+      showToast("Erreur lors de l'upload du document", "error");
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -298,9 +304,11 @@ export default function DocumentsPage() {
 
       setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
       setSuccess("Document supprimé");
+      showToast("Document supprimé", "success");
     } catch (error) {
       console.error("Error deleting document:", error);
       setError("Erreur lors de la suppression");
+      showToast("Erreur lors de la suppression du document", "error");
     }
   };
 
@@ -389,11 +397,14 @@ export default function DocumentsPage() {
             <p className="text-xs text-white/30">Uploadez votre premier fichier</p>
           </div>
         ) : (
+          <>
           <div className="border border-white/[0.06]">
-            {documents.map((doc, index) => (
+            {documents
+              .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+              .map((doc, index, arr) => (
               <div
                 key={doc.id}
-                className={`flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-colors ${index !== documents.length - 1 ? 'border-b border-white/[0.04]' : ''}`}
+                className={`flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-colors ${index !== arr.length - 1 ? 'border-b border-white/[0.04]' : ''}`}
               >
                 <div className="p-2 text-white/40">
                   {getFileIcon(doc.file_type)}
@@ -435,6 +446,35 @@ export default function DocumentsPage() {
               </div>
             ))}
           </div>
+          
+          {/* Pagination */}
+          {documents.length > ITEMS_PER_PAGE && (
+            <div className="flex items-center justify-between mt-4 text-sm">
+              <span className="text-white/40">
+                {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, documents.length)} sur {documents.length}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border border-white/10 text-white/60 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  Précédent
+                </button>
+                <span className="text-white/50 px-2">
+                  {currentPage} / {Math.ceil(documents.length / ITEMS_PER_PAGE)}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(documents.length / ITEMS_PER_PAGE), p + 1))}
+                  disabled={currentPage >= Math.ceil(documents.length / ITEMS_PER_PAGE)}
+                  className="px-3 py-1 border border-white/10 text-white/60 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
+          </>
         )}
       </div>
 

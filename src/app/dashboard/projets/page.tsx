@@ -17,6 +17,8 @@ interface Project {
   updated_at: string;
 }
 
+const ITEMS_PER_PAGE = 9;
+
 export default function ProjetsPage() {
   const { user } = useUser();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -26,6 +28,7 @@ export default function ProjetsPage() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editProject, setEditProject] = useState<Project | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (user) {
@@ -191,8 +194,11 @@ export default function ProjetsPage() {
           </button>
         </div>
       ) : (
+        <>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProjects.map((project) => (
+          {filteredProjects
+            .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+            .map((project) => (
             <div
               key={project.id}
               className="border border-white/10 p-4 hover:bg-white/[0.02] transition-colors group"
@@ -272,6 +278,35 @@ export default function ProjetsPage() {
             </div>
           ))}
         </div>
+        
+        {/* Pagination */}
+        {filteredProjects.length > ITEMS_PER_PAGE && (
+          <div className="flex items-center justify-between mt-6 text-sm">
+            <span className="text-white/40">
+              {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredProjects.length)} sur {filteredProjects.length}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 border border-white/10 text-white/60 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                Précédent
+              </button>
+              <span className="text-white/50 px-2">
+                {currentPage} / {Math.ceil(filteredProjects.length / ITEMS_PER_PAGE)}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredProjects.length / ITEMS_PER_PAGE), p + 1))}
+                disabled={currentPage >= Math.ceil(filteredProjects.length / ITEMS_PER_PAGE)}
+                className="px-3 py-1 border border-white/10 text-white/60 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        )}
+        </>
       )}
 
       {showModal && (
