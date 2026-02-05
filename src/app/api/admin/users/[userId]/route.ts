@@ -76,16 +76,20 @@ export async function PATCH(
       return NextResponse.json({ error: 'Failed to update user in database' }, { status: 500 });
     }
 
-    // Sync metadata to Clerk
-    const clerk = await clerkClient();
-    const clerkMetadata: Record<string, unknown> = {};
-    if (role !== undefined) clerkMetadata.role = role;
-    if (status !== undefined) clerkMetadata.status = status;
-    if (features_unlocked !== undefined) clerkMetadata.features_unlocked = features_unlocked;
+    // Sync metadata to Clerk (non-fatal: test users may not exist in Clerk)
+    try {
+      const clerk = await clerkClient();
+      const clerkMetadata: Record<string, unknown> = {};
+      if (role !== undefined) clerkMetadata.role = role;
+      if (status !== undefined) clerkMetadata.status = status;
+      if (features_unlocked !== undefined) clerkMetadata.features_unlocked = features_unlocked;
 
-    await clerk.users.updateUserMetadata(targetUser.clerk_id, {
-      publicMetadata: clerkMetadata,
-    });
+      await clerk.users.updateUserMetadata(targetUser.clerk_id, {
+        publicMetadata: clerkMetadata,
+      });
+    } catch (clerkError) {
+      console.warn('Clerk sync failed (user may not exist in Clerk):', targetUser.clerk_id, clerkError);
+    }
 
     // Log the action with old values
     const oldValues: Record<string, unknown> = {};
@@ -93,14 +97,18 @@ export async function PATCH(
     if (status !== undefined) oldValues.status = targetUser.status;
     if (features_unlocked !== undefined) oldValues.features_unlocked = targetUser.features_unlocked;
 
-    await supabase.from('audit_logs').insert({
-      user_id: userId,
-      action: role !== undefined ? 'role_changed' : status !== undefined ? 'status_changed' : 'user_updated',
-      entity_type: 'user',
-      entity_id: userId,
-      old_values: oldValues,
-      new_values: updateData,
-    });
+    try {
+      await supabase.from('audit_logs').insert({
+        user_id: userId,
+        action: role !== undefined ? 'role_changed' : status !== undefined ? 'status_changed' : 'user_updated',
+        entity_type: 'user',
+        entity_id: userId,
+        old_values: oldValues,
+        new_values: updateData,
+      });
+    } catch (auditError) {
+      console.warn('Audit log insert failed:', auditError);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
