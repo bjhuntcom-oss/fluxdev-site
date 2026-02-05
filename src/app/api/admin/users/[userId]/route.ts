@@ -16,7 +16,13 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createAdminSupabaseClient();
+    let supabase;
+    try {
+      supabase = createAdminSupabaseClient();
+    } catch (e) {
+      console.error('Admin client unavailable:', e);
+      return NextResponse.json({ error: 'Service admin indisponible. Vérifiez SUPABASE_SERVICE_ROLE_KEY.' }, { status: 503 });
+    }
     
     // Check if current user is admin
     const { data: currentUser } = await supabase
@@ -114,7 +120,13 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createAdminSupabaseClient();
+    let supabase;
+    try {
+      supabase = createAdminSupabaseClient();
+    } catch (e) {
+      console.error('Admin client unavailable:', e);
+      return NextResponse.json({ error: 'Service admin indisponible' }, { status: 503 });
+    }
     
     // Check if current user is admin or staff
     const { data: currentUser } = await supabase
