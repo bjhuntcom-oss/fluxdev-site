@@ -96,6 +96,7 @@ export default function StaffConversationsPage() {
       case 'open': return <AlertCircle className="w-4 h-4 text-green-500" />;
       case 'closed': return <CheckCircle className="w-4 h-4 text-white/40" />;
       case 'pending': return <Clock className="w-4 h-4 text-yellow-500" />;
+      case 'archived': return <CheckCircle className="w-4 h-4 text-white/20" />;
       default: return <Clock className="w-4 h-4 text-white/40" />;
     }
   };
@@ -105,6 +106,7 @@ export default function StaffConversationsPage() {
       case 'open': return 'Ouverte';
       case 'closed': return 'Fermee';
       case 'pending': return 'En attente';
+      case 'archived': return 'Archivee';
       default: return status;
     }
   };
@@ -165,6 +167,7 @@ export default function StaffConversationsPage() {
           <option value="open">Ouvertes</option>
           <option value="pending">En attente</option>
           <option value="closed">Fermees</option>
+          <option value="archived">Archivees</option>
         </select>
       </div>
 

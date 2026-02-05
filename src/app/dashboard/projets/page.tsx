@@ -223,6 +223,8 @@ export default function ProjetsPage() {
                     <MoreVertical className="w-4 h-4 text-white/40" />
                   </button>
                   {openMenuId === project.id && (
+                    <>
+                    <div className="fixed inset-0 z-[9]" onClick={() => setOpenMenuId(null)} />
                     <div className="absolute right-0 top-full mt-1 bg-[#0a0a0a] border border-white/10 min-w-[140px] z-10">
                       {project.status !== 'active' && (
                         <button
@@ -255,6 +257,7 @@ export default function ProjetsPage() {
                         Supprimer
                       </button>
                     </div>
+                    </>
                   )}
                 </div>
               </div>

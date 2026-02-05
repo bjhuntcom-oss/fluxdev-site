@@ -12,7 +12,7 @@ interface Notification {
   type: "message" | "document" | "project" | "system";
   title: string;
   content: string;
-  read: boolean;
+  is_read: boolean;
   created_at: string;
   link?: string;
 }
@@ -27,7 +27,7 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   useEffect(() => {
     if (userId) {
@@ -95,11 +95,11 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
     try {
       await supabase
         .from("notifications")
-        .update({ read: true })
+        .update({ is_read: true })
         .eq("id", id);
       
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
       );
     } catch (error) {
       console.error("Error marking notification as read:", error);
@@ -110,11 +110,11 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
     try {
       await supabase
         .from("notifications")
-        .update({ read: true })
+        .update({ is_read: true })
         .eq("user_id", userId)
-        .eq("read", false);
+        .eq("is_read", false);
       
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch (error) {
       console.error("Error marking all as read:", error);
     }
@@ -176,7 +176,7 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
                 <div
                   key={notification.id}
                   className={`px-4 py-3 border-b border-white/5 hover:bg-white/[0.02] transition-colors ${
-                    !notification.read ? "bg-white/[0.02]" : ""
+                    !notification.is_read ? "bg-white/[0.02]" : ""
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -184,7 +184,7 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="text-white/80 text-sm truncate">{notification.title}</p>
-                        {!notification.read && (
+                        {!notification.is_read && (
                           <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
                         )}
                       </div>
@@ -195,7 +195,7 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
                         {format(new Date(notification.created_at), "dd MMM HH:mm", { locale: fr })}
                       </p>
                     </div>
-                    {!notification.read && (
+                    {!notification.is_read && (
                       <button
                         onClick={() => markAsRead(notification.id)}
                         className="p-1 text-white/30 hover:text-white/60 transition-colors"
