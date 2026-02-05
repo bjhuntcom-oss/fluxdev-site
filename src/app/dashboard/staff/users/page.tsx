@@ -70,7 +70,8 @@ export default function StaffUsersPage() {
     switch (status) {
       case 'active': return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'pending': return <Clock className="w-4 h-4 text-yellow-500" />;
-      case 'suspended': return <XCircle className="w-4 h-4 text-red-500" />;
+      case 'suspended': return <XCircle className="w-4 h-4 text-orange-500" />;
+      case 'banned': return <XCircle className="w-4 h-4 text-red-500" />;
       default: return <Clock className="w-4 h-4 text-white/40" />;
     }
   };
@@ -80,6 +81,7 @@ export default function StaffUsersPage() {
       case 'active': return 'Actif';
       case 'pending': return 'En attente';
       case 'suspended': return 'Suspendu';
+      case 'banned': return 'Banni';
       default: return status;
     }
   };
@@ -194,6 +196,7 @@ export default function StaffUsersPage() {
             <option value="active" className="bg-[#1a1a1a] text-white">Actifs</option>
             <option value="pending" className="bg-[#1a1a1a] text-white">En attente</option>
             <option value="suspended" className="bg-[#1a1a1a] text-white">Suspendus</option>
+            <option value="banned" className="bg-[#1a1a1a] text-white">Bannis</option>
           </select>
         </div>
       </div>

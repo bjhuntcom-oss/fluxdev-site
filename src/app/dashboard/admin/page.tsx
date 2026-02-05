@@ -5,6 +5,7 @@ import {
   Users,
   MessageSquare,
   FileText,
+  FolderKanban,
   Activity,
   Eye,
   ArrowRight,
@@ -196,6 +197,12 @@ export default function AdminDashboard() {
       icon: <FileText className="w-4 h-4" />,
     },
     {
+      title: "Projets",
+      value: stats.totalProjects,
+      subValue: "projets crees",
+      icon: <FolderKanban className="w-4 h-4" />,
+    },
+    {
       title: "Connexions",
       value: stats.todayLogins,
       subValue: "aujourd hui",
@@ -235,7 +242,7 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="border border-white/10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         {statCards.map((stat) => (
           <div
             key={stat.title}

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
 
+const VALID_ROLES = ['user', 'staff', 'dev', 'admin'] as const;
+const VALID_STATUSES = ['pending', 'active', 'suspended', 'banned'] as const;
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
@@ -30,10 +33,20 @@ export async function PATCH(
     const body = await req.json();
     const { role, status, features_unlocked } = body;
 
-    // Get the user's clerk_id from Supabase
+    // Validate role if provided
+    if (role !== undefined && !VALID_ROLES.includes(role)) {
+      return NextResponse.json({ error: `Invalid role. Must be one of: ${VALID_ROLES.join(', ')}` }, { status: 400 });
+    }
+
+    // Validate status if provided
+    if (status !== undefined && !VALID_STATUSES.includes(status)) {
+      return NextResponse.json({ error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` }, { status: 400 });
+    }
+
+    // Get the target user's current data for audit
     const { data: targetUser } = await supabase
       .from('users')
-      .select('clerk_id')
+      .select('clerk_id, role, status, features_unlocked')
       .eq('id', userId)
       .single();
 
@@ -68,12 +81,18 @@ export async function PATCH(
       publicMetadata: clerkMetadata,
     });
 
-    // Log the action
+    // Log the action with old values
+    const oldValues: Record<string, unknown> = {};
+    if (role !== undefined) oldValues.role = targetUser.role;
+    if (status !== undefined) oldValues.status = targetUser.status;
+    if (features_unlocked !== undefined) oldValues.features_unlocked = targetUser.features_unlocked;
+
     await supabase.from('audit_logs').insert({
       user_id: userId,
-      action: 'user_updated',
+      action: role !== undefined ? 'role_changed' : status !== undefined ? 'status_changed' : 'user_updated',
       entity_type: 'user',
       entity_id: userId,
+      old_values: oldValues,
       new_values: updateData,
     });
 

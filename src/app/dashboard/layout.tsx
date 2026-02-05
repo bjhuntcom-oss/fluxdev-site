@@ -43,8 +43,8 @@ const navItems: NavItem[] = [
 ];
 
 const staffNavItems: NavItem[] = [
-  { label: "Utilisateurs", href: "/dashboard/staff/users", icon: <Users className="w-4 h-4" />, roles: ["staff", "admin"] },
-  { label: "Conversations", href: "/dashboard/staff/conversations", icon: <MessageSquare className="w-4 h-4" />, roles: ["staff", "admin"] },
+  { label: "Utilisateurs", href: "/dashboard/staff/users", icon: <Users className="w-4 h-4" />, roles: ["staff", "dev", "admin"] },
+  { label: "Conversations", href: "/dashboard/staff/conversations", icon: <MessageSquare className="w-4 h-4" />, roles: ["staff", "dev", "admin"] },
 ];
 
 const adminNavItems: NavItem[] = [
@@ -65,6 +65,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userStatus, setUserStatus] = useState<string | null>(null);
   const [supabaseUserId, setSupabaseUserId] = useState<string | null>(null);
   const [roleLoaded, setRoleLoaded] = useState(false);
   const { isSynced, isLoading: isSyncing, error: syncError } = useUserSync();
@@ -81,12 +82,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         // Fetch role and ID from Supabase (source of truth)
         const { data: userData } = await supabase
           .from('users')
-          .select('id, role')
+          .select('id, role, status')
           .eq('clerk_id', user.id)
           .single();
 
         if (userData) {
           setUserRole(userData.role || 'user');
+          setUserStatus(userData.status || 'active');
           setSupabaseUserId(userData.id);
         } else {
           // Fallback to Clerk metadata
@@ -110,7 +112,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // Redirect if user doesn't have access
     if (isAdminRoute && userRole !== 'admin') {
       router.replace('/dashboard');
-    } else if (isStaffRoute && !['staff', 'admin'].includes(userRole)) {
+    } else if (isStaffRoute && !['staff', 'dev', 'admin'].includes(userRole)) {
       router.replace('/dashboard');
     } else if (isDevRoute && !['dev', 'admin'].includes(userRole)) {
       router.replace('/dashboard');
@@ -127,6 +129,68 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
+
+  // Blocked view for suspended/banned users
+  if (userStatus === 'suspended' || userStatus === 'banned') {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6 p-8">
+        <div className="w-16 h-16 border-2 border-red-500/30 flex items-center justify-center">
+          <Shield className="w-8 h-8 text-red-500/60" />
+        </div>
+        <div className="text-center max-w-md">
+          <h1 className="text-xl font-light text-white mb-2">
+            {userStatus === 'banned' ? 'Compte banni' : 'Compte suspendu'}
+          </h1>
+          <p className="text-white/50 text-sm mb-6">
+            {userStatus === 'banned' 
+              ? 'Votre compte a été banni. Vous ne pouvez plus accéder au dashboard.'
+              : 'Votre compte a été temporairement suspendu. Veuillez contacter l\'équipe FluxDev pour plus d\'informations.'}
+          </p>
+          <a 
+            href="mailto:contact@fluxdev.io"
+            className="inline-flex items-center gap-2 px-6 py-3 border border-white/20 text-white/70 hover:text-white hover:border-white/40 transition-colors text-sm"
+          >
+            Contacter le support
+          </a>
+        </div>
+        <div className="mt-4">
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: "w-8 h-8",
+              },
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Pending user view
+  if (userStatus === 'pending') {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6 p-8">
+        <div className="w-16 h-16 border-2 border-amber-500/30 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-amber-500/60 animate-spin" />
+        </div>
+        <div className="text-center max-w-md">
+          <h1 className="text-xl font-light text-white mb-2">Compte en attente de validation</h1>
+          <p className="text-white/50 text-sm mb-6">
+            Votre compte est en cours de vérification par notre équipe. Vous recevrez une notification dès qu&apos;il sera activé.
+          </p>
+        </div>
+        <div className="mt-4">
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: "w-8 h-8",
+              },
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   const canAccess = (roles?: string[]) => {
     if (!roles) return true;

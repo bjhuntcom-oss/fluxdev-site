@@ -20,10 +20,15 @@ import {
   Smartphone,
   Loader2,
   Check,
+  Ban,
+  UserCheck,
+  Pause,
+  MoreHorizontal,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useToast } from "@/components/ui/Toast";
 import type { User, UserRole, UserStatus, UserSession } from "@/types/database";
 
 const roleOptions: { value: UserRole; label: string; icon: React.ReactNode }[] = [
@@ -41,15 +46,19 @@ const statusOptions: { value: UserStatus; label: string; color: string }[] = [
 ];
 
 export default function AdminUsersPage() {
+  const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userSessions, setUserSessions] = useState<UserSession[]>([]);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState<{ userId: string; action: string; label: string } | null>(null);
+  const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 20;
@@ -140,61 +149,67 @@ export default function AdminUsersPage() {
     await loadUserSessions(user.id);
   };
 
-  const updateUserRole = async (userId: string, newRole: UserRole) => {
+  const updateUser = async (userId: string, data: Record<string, unknown>, successMsg: string) => {
+    setActionLoading(userId);
     try {
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole }),
+        body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error('Failed to update role');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Erreur serveur');
+      }
 
+      showToast(successMsg, 'success');
       loadUsers();
+      
       if (selectedUser?.id === userId) {
-        setSelectedUser({ ...selectedUser, role: newRole });
+        setSelectedUser({ ...selectedUser, ...data } as User);
       }
     } catch (error) {
-      console.error("Error updating role:", error);
+      const msg = error instanceof Error ? error.message : 'Erreur inconnue';
+      showToast(`Erreur: ${msg}`, 'error');
+      console.error("Error updating user:", error);
+    } finally {
+      setActionLoading(null);
+      setShowConfirmModal(null);
+      setActionMenuOpen(null);
     }
   };
 
-  const updateUserStatus = async (userId: string, newStatus: UserStatus) => {
-    try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
+  const updateUserRole = (userId: string, newRole: UserRole) => {
+    const labels: Record<string, string> = { user: 'Utilisateur', staff: 'Staff', dev: 'Développeur', admin: 'Admin' };
+    updateUser(userId, { role: newRole }, `Rôle changé en ${labels[newRole]}`);
+  };
+
+  const updateUserStatus = (userId: string, newStatus: UserStatus) => {
+    const labels: Record<string, string> = { active: 'activé', pending: 'mis en attente', suspended: 'suspendu', banned: 'banni' };
+    updateUser(userId, { status: newStatus }, `Utilisateur ${labels[newStatus]}`);
+  };
+
+  const toggleFeatures = (userId: string, unlock: boolean) => {
+    updateUser(userId, { features_unlocked: unlock }, unlock ? 'Fonctionnalités débloquées' : 'Fonctionnalités verrouillées');
+  };
+
+  const handleStatusAction = (userId: string, action: string) => {
+    if (action === 'ban' || action === 'suspend') {
+      setShowConfirmModal({ 
+        userId, 
+        action, 
+        label: action === 'ban' ? 'Bannir cet utilisateur ?' : 'Suspendre cet utilisateur ?' 
       });
-
-      if (!response.ok) throw new Error('Failed to update status');
-
-      loadUsers();
-      if (selectedUser?.id === userId) {
-        setSelectedUser({ ...selectedUser, status: newStatus });
-      }
-    } catch (error) {
-      console.error("Error updating status:", error);
+    } else if (action === 'activate') {
+      updateUserStatus(userId, 'active');
     }
   };
 
-  const toggleFeatures = async (userId: string, unlock: boolean) => {
-    try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ features_unlocked: unlock }),
-      });
-
-      if (!response.ok) throw new Error('Failed to toggle features');
-
-      loadUsers();
-      if (selectedUser?.id === userId) {
-        setSelectedUser({ ...selectedUser, features_unlocked: unlock });
-      }
-    } catch (error) {
-      console.error("Error toggling features:", error);
-    }
+  const confirmAction = () => {
+    if (!showConfirmModal) return;
+    const status = showConfirmModal.action === 'ban' ? 'banned' : 'suspended';
+    updateUserStatus(showConfirmModal.userId, status as UserStatus);
   };
 
   const getStatusBadge = (status: string) => {
@@ -347,13 +362,108 @@ export default function AdminUsersPage() {
                         : "—"}
                     </td>
                     <td className="p-4">
-                      <div className="flex items-center justify-end">
-                        <button
-                          onClick={() => openUserModal(user)}
-                          className="p-2 hover:bg-white/[0.04] transition-colors text-white/50 hover:text-white/80"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                      <div className="flex items-center justify-end gap-1 relative">
+                        {actionLoading === user.id ? (
+                          <Loader2 className="w-4 h-4 text-white/40 animate-spin" />
+                        ) : (
+                          <>
+                            {/* Quick status actions */}
+                            {user.status === 'pending' && (
+                              <button
+                                onClick={() => handleStatusAction(user.id, 'activate')}
+                                className="p-1.5 hover:bg-emerald-500/10 transition-colors text-emerald-500/60 hover:text-emerald-400"
+                                title="Activer"
+                              >
+                                <UserCheck className="w-4 h-4" />
+                              </button>
+                            )}
+                            {user.status === 'active' && (
+                              <button
+                                onClick={() => handleStatusAction(user.id, 'suspend')}
+                                className="p-1.5 hover:bg-amber-500/10 transition-colors text-white/30 hover:text-amber-400"
+                                title="Suspendre"
+                              >
+                                <Pause className="w-4 h-4" />
+                              </button>
+                            )}
+                            {(user.status === 'suspended' || user.status === 'banned') && (
+                              <button
+                                onClick={() => handleStatusAction(user.id, 'activate')}
+                                className="p-1.5 hover:bg-emerald-500/10 transition-colors text-white/30 hover:text-emerald-400"
+                                title="Réactiver"
+                              >
+                                <UserCheck className="w-4 h-4" />
+                              </button>
+                            )}
+                            {/* View details */}
+                            <button
+                              onClick={() => openUserModal(user)}
+                              className="p-1.5 hover:bg-white/[0.04] transition-colors text-white/30 hover:text-white/80"
+                              title="Détails"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            {/* More actions menu */}
+                            <div className="relative">
+                              <button
+                                onClick={() => setActionMenuOpen(actionMenuOpen === user.id ? null : user.id)}
+                                className="p-1.5 hover:bg-white/[0.04] transition-colors text-white/30 hover:text-white/80"
+                              >
+                                <MoreHorizontal className="w-4 h-4" />
+                              </button>
+                              {actionMenuOpen === user.id && (
+                                <div className="absolute right-0 top-full mt-1 bg-[#111] border border-white/10 py-1 z-50 min-w-[180px] shadow-xl">
+                                  <p className="px-3 py-1.5 text-[10px] text-white/30 uppercase tracking-wider">Changer le rôle</p>
+                                  {roleOptions.map((r) => (
+                                    <button
+                                      key={r.value}
+                                      onClick={() => updateUserRole(user.id, r.value)}
+                                      className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-white/[0.04] transition-colors ${user.role === r.value ? 'text-white' : 'text-white/60'}`}
+                                    >
+                                      {r.icon}
+                                      {r.label}
+                                      {user.role === r.value && <Check className="w-3 h-3 ml-auto" />}
+                                    </button>
+                                  ))}
+                                  <div className="border-t border-white/[0.06] my-1" />
+                                  <p className="px-3 py-1.5 text-[10px] text-white/30 uppercase tracking-wider">Actions</p>
+                                  {user.status !== 'active' && (
+                                    <button
+                                      onClick={() => { setActionMenuOpen(null); handleStatusAction(user.id, 'activate'); }}
+                                      className="w-full px-3 py-2 text-left text-sm text-emerald-400 hover:bg-white/[0.04] transition-colors flex items-center gap-2"
+                                    >
+                                      <UserCheck className="w-4 h-4" /> Activer
+                                    </button>
+                                  )}
+                                  {user.status !== 'suspended' && (
+                                    <button
+                                      onClick={() => { setActionMenuOpen(null); handleStatusAction(user.id, 'suspend'); }}
+                                      className="w-full px-3 py-2 text-left text-sm text-amber-400 hover:bg-white/[0.04] transition-colors flex items-center gap-2"
+                                    >
+                                      <Pause className="w-4 h-4" /> Suspendre
+                                    </button>
+                                  )}
+                                  {user.status !== 'banned' && (
+                                    <button
+                                      onClick={() => { setActionMenuOpen(null); handleStatusAction(user.id, 'ban'); }}
+                                      className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-white/[0.04] transition-colors flex items-center gap-2"
+                                    >
+                                      <Ban className="w-4 h-4" /> Bannir
+                                    </button>
+                                  )}
+                                  <div className="border-t border-white/[0.06] my-1" />
+                                  <button
+                                    onClick={() => { setActionMenuOpen(null); toggleFeatures(user.id, !user.features_unlocked); }}
+                                    className="w-full px-3 py-2 text-left text-sm text-white/60 hover:bg-white/[0.04] transition-colors flex items-center gap-2"
+                                  >
+                                    {user.features_unlocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                                    {user.features_unlocked ? 'Verrouiller features' : 'Débloquer features'}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -388,6 +498,51 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      {/* Click outside to close action menu */}
+      {actionMenuOpen && (
+        <div className="fixed inset-0 z-40" onClick={() => setActionMenuOpen(null)} />
+      )}
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowConfirmModal(null)}>
+          <div onClick={(e: React.MouseEvent) => e.stopPropagation()} className="bg-[#0a0a0a] border border-white/10 w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              {showConfirmModal.action === 'ban' ? (
+                <Ban className="w-5 h-5 text-red-400" />
+              ) : (
+                <Pause className="w-5 h-5 text-amber-400" />
+              )}
+              <h3 className="text-white text-sm font-medium">{showConfirmModal.label}</h3>
+            </div>
+            <p className="text-white/50 text-sm mb-6">
+              {showConfirmModal.action === 'ban' 
+                ? "L'utilisateur ne pourra plus accéder au dashboard. Cette action est réversible."
+                : "L'utilisateur sera temporairement bloqué. Cette action est réversible."}
+            </p>
+            <div className="flex items-center gap-3 justify-end">
+              <button
+                onClick={() => setShowConfirmModal(null)}
+                className="px-4 py-2 text-sm text-white/60 hover:text-white border border-white/10 hover:border-white/20 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmAction}
+                disabled={actionLoading !== null}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  showConfirmModal.action === 'ban' 
+                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30' 
+                    : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30'
+                }`}
+              >
+                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* User Detail Modal */}
       {showUserModal && selectedUser && (
