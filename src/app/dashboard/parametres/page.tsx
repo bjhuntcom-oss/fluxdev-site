@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { User, Bell, Shield, Save, Loader2, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useLocale } from "@/contexts";
+import { useToast } from "@/components/ui/Toast";
 
 interface UserPreferences {
   notifications_email: boolean;
@@ -16,6 +17,7 @@ export default function SettingsPage() {
   const { user } = useUser();
   const { openUserProfile } = useClerk();
   const { t } = useLocale();
+  const { showToast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -72,7 +74,7 @@ export default function SettingsPage() {
       });
 
       // Update Supabase preferences
-      await supabase
+      const { error: supaError } = await supabase
         .from("users")
         .update({
           first_name: firstName,
@@ -83,10 +85,13 @@ export default function SettingsPage() {
         })
         .eq("clerk_id", user.id);
 
+      if (supaError) throw supaError;
+
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
       console.error("Error saving settings:", error);
+      showToast(t("dash.settings.saveError"), "error");
     } finally {
       setIsSaving(false);
     }

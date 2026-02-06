@@ -66,10 +66,17 @@ export default function StaffConversationsPage() {
 
       if (error) {
         if (error.code === 'PGRST200') {
-          const { data: simpleData } = await supabase
+          let fallbackQuery = supabase
             .from('conversations')
             .select('*')
             .order('updated_at', { ascending: false });
+          
+          // Apply same role-based filtering in fallback
+          if (userData && userData.role !== 'admin') {
+            fallbackQuery = fallbackQuery.eq('assigned_staff_id', userData.id);
+          }
+
+          const { data: simpleData } = await fallbackQuery;
           setConversations(simpleData || []);
           return;
         }

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { useLocale } from '@/contexts';
+import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
 
 interface Project {
@@ -23,6 +24,7 @@ const ITEMS_PER_PAGE = 9;
 export default function ProjetsPage() {
   const { user } = useUser();
   const { locale, t } = useLocale();
+  const { showToast } = useToast();
   const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,11 +85,16 @@ export default function ProjetsPage() {
         .eq('clerk_id', user?.id)
         .single();
 
+      if (!userData) {
+        showToast(t('dash.proj.createError'), 'error');
+        return;
+      }
+
       const { error } = await supabase.from('projects').insert({
         title: newProject.name,
         description: newProject.description,
         status: 'draft',
-        user_id: userData?.id
+        user_id: userData.id
       });
 
       if (error) throw error;
@@ -97,6 +104,7 @@ export default function ProjetsPage() {
       loadProjects();
     } catch (error) {
       console.error('Error creating project:', error);
+      showToast(t('dash.proj.createError'), 'error');
     }
   };
 
@@ -129,6 +137,7 @@ export default function ProjetsPage() {
       setOpenMenuId(null);
     } catch (error) {
       console.error('Error updating project:', error);
+      showToast(t('dash.projDetail.saveError'), 'error');
     }
   };
 
@@ -140,6 +149,7 @@ export default function ProjetsPage() {
       setProjects(prev => prev.filter(p => p.id !== projectId));
     } catch (error) {
       console.error('Error deleting project:', error);
+      showToast(t('dash.proj.createError'), 'error');
     }
   };
 

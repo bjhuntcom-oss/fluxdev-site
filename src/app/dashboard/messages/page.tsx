@@ -307,6 +307,7 @@ export default function MessagesPage() {
       loadConversations(); // Refresh list
     } catch (error) {
       console.error("Error assigning conversation:", error);
+      showToast(t("dash.msg.sendError"), "error");
     }
   };
 
@@ -322,6 +323,7 @@ export default function MessagesPage() {
       loadConversations();
     } catch (error) {
       console.error("Error unassigning conversation:", error);
+      showToast(t("dash.msg.sendError"), "error");
     }
   };
 
@@ -583,6 +585,7 @@ export default function MessagesPage() {
       closeContextMenu();
     } catch (error) {
       console.error("Error marking as read:", error);
+      showToast(t("dash.msg.sendError"), "error");
     }
   };
 
@@ -600,6 +603,7 @@ export default function MessagesPage() {
       closeContextMenu();
     } catch (error) {
       console.error("Error deleting conversation:", error);
+      showToast(t("dash.msg.sendError"), "error");
     }
   };
 
@@ -627,6 +631,7 @@ export default function MessagesPage() {
       closeContextMenu();
     } catch (error) {
       console.error('Error archiving conversation:', error);
+      showToast(t("dash.msg.sendError"), "error");
     }
   };
 

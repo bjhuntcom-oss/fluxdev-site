@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { useLocale } from '@/contexts';
+import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
 
 interface Task {
@@ -39,6 +40,7 @@ export default function ProjectDetailPage() {
   const router = useRouter();
   const { user } = useUser();
   const { locale, t } = useLocale();
+  const { showToast } = useToast();
   const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
@@ -137,6 +139,7 @@ export default function ProjectDetailPage() {
       loadProject();
     } catch (error) {
       console.error('Error updating project:', error);
+      showToast(t('dash.projDetail.saveError'), 'error');
     }
   };
 
@@ -152,6 +155,7 @@ export default function ProjectDetailPage() {
       loadProject();
     } catch (error) {
       console.error('Error updating status:', error);
+      showToast(t('dash.projDetail.saveError'), 'error');
     }
   };
 
@@ -192,6 +196,7 @@ export default function ProjectDetailPage() {
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error saving tasks:', error);
+      showToast(t('dash.projDetail.saveError'), 'error');
     }
   };
 
@@ -203,6 +208,7 @@ export default function ProjectDetailPage() {
       router.push('/dashboard/projets');
     } catch (error) {
       console.error('Error deleting project:', error);
+      showToast(t('dash.projDetail.saveError'), 'error');
     }
   };
 
