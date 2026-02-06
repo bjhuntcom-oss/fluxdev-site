@@ -18,6 +18,7 @@ import {
   X,
   ChevronRight,
   Loader2,
+  Globe,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { UserButton } from "@clerk/nextjs";
@@ -25,6 +26,7 @@ import { useUserSync } from "@/hooks/useUserSync";
 import { supabase, initClerkId } from "@/lib/supabase/client";
 import { ToastProvider } from "@/components/ui/Toast";
 import { NotificationDropdown } from "@/components/ui/NotificationDropdown";
+import { useLocale } from "@/contexts";
 
 interface NavItem {
   label: string;
@@ -34,41 +36,43 @@ interface NavItem {
   badge?: number;
 }
 
-const navItems: NavItem[] = [
-  { label: "Tableau de bord", href: "/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Messages", href: "/dashboard/messages", icon: <MessageSquare className="w-4 h-4" /> },
-  { label: "Documents", href: "/dashboard/documents", icon: <FileText className="w-4 h-4" /> },
-  { label: "Projets", href: "/dashboard/projets", icon: <FolderKanban className="w-4 h-4" /> },
-  { label: "Parametres", href: "/dashboard/parametres", icon: <Settings className="w-4 h-4" /> },
-];
-
-const staffNavItems: NavItem[] = [
-  { label: "Utilisateurs", href: "/dashboard/staff/users", icon: <Users className="w-4 h-4" />, roles: ["staff", "dev", "admin"] },
-  { label: "Conversations", href: "/dashboard/staff/conversations", icon: <MessageSquare className="w-4 h-4" />, roles: ["staff", "dev", "admin"] },
-];
-
-const adminNavItems: NavItem[] = [
-  { label: "Administration", href: "/dashboard/admin", icon: <Shield className="w-4 h-4" />, roles: ["admin"] },
-  { label: "Utilisateurs", href: "/dashboard/admin/users", icon: <Users className="w-4 h-4" />, roles: ["admin"] },
-  { label: "Analytics", href: "/dashboard/admin/analytics", icon: <BarChart3 className="w-4 h-4" />, roles: ["admin"] },
-  { label: "Logs", href: "/dashboard/admin/logs", icon: <FileText className="w-4 h-4" />, roles: ["admin"] },
-];
-
-const devNavItems: NavItem[] = [
-  { label: "Dev Tools", href: "/dashboard/dev", icon: <Code className="w-4 h-4" />, roles: ["dev", "admin"] },
-  { label: "API Logs", href: "/dashboard/dev/api-logs", icon: <FileText className="w-4 h-4" />, roles: ["dev", "admin"] },
-];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const pathname = usePathname();
+  const { locale, setLocale, t } = useLocale();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userStatus, setUserStatus] = useState<string | null>(null);
   const [supabaseUserId, setSupabaseUserId] = useState<string | null>(null);
   const [roleLoaded, setRoleLoaded] = useState(false);
   const { isSynced, isLoading: isSyncing, error: syncError } = useUserSync();
+
+  const navItems: NavItem[] = [
+    { label: t("dash.nav.dashboard"), href: "/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
+    { label: t("dash.nav.messages"), href: "/dashboard/messages", icon: <MessageSquare className="w-4 h-4" /> },
+    { label: t("dash.nav.documents"), href: "/dashboard/documents", icon: <FileText className="w-4 h-4" /> },
+    { label: t("dash.nav.projects"), href: "/dashboard/projets", icon: <FolderKanban className="w-4 h-4" /> },
+    { label: t("dash.nav.settings"), href: "/dashboard/parametres", icon: <Settings className="w-4 h-4" /> },
+  ];
+
+  const staffNavItems: NavItem[] = [
+    { label: t("dash.nav.staff.users"), href: "/dashboard/staff/users", icon: <Users className="w-4 h-4" />, roles: ["staff", "dev", "admin"] },
+    { label: t("dash.nav.staff.conversations"), href: "/dashboard/staff/conversations", icon: <MessageSquare className="w-4 h-4" />, roles: ["staff", "dev", "admin"] },
+  ];
+
+  const adminNavItems: NavItem[] = [
+    { label: t("dash.nav.admin.dashboard"), href: "/dashboard/admin", icon: <Shield className="w-4 h-4" />, roles: ["admin"] },
+    { label: t("dash.nav.admin.users"), href: "/dashboard/admin/users", icon: <Users className="w-4 h-4" />, roles: ["admin"] },
+    { label: t("dash.nav.admin.analytics"), href: "/dashboard/admin/analytics", icon: <BarChart3 className="w-4 h-4" />, roles: ["admin"] },
+    { label: t("dash.nav.admin.logs"), href: "/dashboard/admin/logs", icon: <FileText className="w-4 h-4" />, roles: ["admin"] },
+  ];
+
+  const devNavItems: NavItem[] = [
+    { label: t("dash.nav.dev.tools"), href: "/dashboard/dev", icon: <Code className="w-4 h-4" />, roles: ["dev", "admin"] },
+    { label: t("dash.nav.dev.api"), href: "/dashboard/dev/api-logs", icon: <FileText className="w-4 h-4" />, roles: ["dev", "admin"] },
+  ];
 
   // Initialize clerk_id SYNCHRONOUSLY during render to avoid race condition
   // Child component effects fire before parent effects, so we need the header set before any effects run
@@ -124,7 +128,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
         <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-        {isSyncing && <p className="text-white/40 text-sm">Synchronisation du compte...</p>}
+        {isSyncing && <p className="text-white/40 text-sm">{t("dash.loading.sync")}</p>}
       </div>
     );
   }
@@ -139,18 +143,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         <div className="text-center max-w-md">
           <h1 className="text-xl font-light text-white mb-2">
-            {userStatus === 'banned' ? 'Compte banni' : 'Compte suspendu'}
+            {userStatus === 'banned' ? t("dash.blocked.banned.title") : t("dash.blocked.suspended.title")}
           </h1>
           <p className="text-white/50 text-sm mb-6">
             {userStatus === 'banned' 
-              ? 'Votre compte a été banni. Vous ne pouvez plus accéder au dashboard.'
-              : 'Votre compte a été temporairement suspendu. Veuillez contacter l\'équipe FluxDev pour plus d\'informations.'}
+              ? t("dash.blocked.banned.desc")
+              : t("dash.blocked.suspended.desc")}
           </p>
           <a 
             href="mailto:contact@fluxdev.io"
             className="inline-flex items-center gap-2 px-6 py-3 border border-white/20 text-white/70 hover:text-white hover:border-white/40 transition-colors text-sm"
           >
-            Contacter le support
+            {t("dash.blocked.contact")}
           </a>
         </div>
         <div className="mt-4">
@@ -174,9 +178,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Loader2 className="w-8 h-8 text-amber-500/60 animate-spin" />
         </div>
         <div className="text-center max-w-md">
-          <h1 className="text-xl font-light text-white mb-2">Compte en attente de validation</h1>
+          <h1 className="text-xl font-light text-white mb-2">{t("dash.blocked.pending.title")}</h1>
           <p className="text-white/50 text-sm mb-6">
-            Votre compte est en cours de vérification par notre équipe. Vous recevrez une notification dès qu&apos;il sera activé.
+            {t("dash.blocked.pending.desc")}
           </p>
         </div>
         <div className="mt-4">
@@ -260,7 +264,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Navigation */}
           <nav className="flex-1 py-4 overflow-y-auto">
             <div className="mb-6">
-              <p className="px-4 text-[10px] text-white/30 uppercase tracking-widest mb-3">Navigation</p>
+              <p className="px-4 text-[10px] text-white/30 uppercase tracking-widest mb-3">{t("dash.nav.navigation")}</p>
               {navItems.map((item) => (
                 <NavLink key={item.href} item={item} />
               ))}
@@ -268,7 +272,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {canAccess(["staff", "admin"]) && (
               <div className="mb-6">
-                <p className="px-4 text-[10px] text-white/30 uppercase tracking-widest mb-3">Staff</p>
+                <p className="px-4 text-[10px] text-white/30 uppercase tracking-widest mb-3">{t("dash.nav.staff")}</p>
                 {staffNavItems.map((item) => (
                   <NavLink key={item.href} item={item} />
                 ))}
@@ -277,7 +281,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {canAccess(["dev", "admin"]) && (
               <div className="mb-6">
-                <p className="px-4 text-[10px] text-white/30 uppercase tracking-widest mb-3">Dev</p>
+                <p className="px-4 text-[10px] text-white/30 uppercase tracking-widest mb-3">{t("dash.nav.dev")}</p>
                 {devNavItems.map((item) => (
                   <NavLink key={item.href} item={item} />
                 ))}
@@ -286,7 +290,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {canAccess(["admin"]) && (
               <div className="mb-6">
-                <p className="px-4 text-[10px] text-white/30 uppercase tracking-widest mb-3">Admin</p>
+                <p className="px-4 text-[10px] text-white/30 uppercase tracking-widest mb-3">{t("dash.nav.admin")}</p>
                 {adminNavItems.map((item) => (
                   <NavLink key={item.href} item={item} />
                 ))}
@@ -341,6 +345,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             
             <div className="flex items-center gap-4">
+              <button
+                onClick={() => setLocale(locale === "fr" ? "en" : "fr")}
+                className="flex items-center gap-2 text-xs text-white/40 hover:text-white transition-colors uppercase tracking-[0.15em]"
+              >
+                <Globe className="w-3.5 h-3.5" />
+                <span className="font-medium">{locale.toUpperCase()}</span>
+              </button>
               {supabaseUserId && <NotificationDropdown userId={supabaseUserId} />}
             </div>
           </div>

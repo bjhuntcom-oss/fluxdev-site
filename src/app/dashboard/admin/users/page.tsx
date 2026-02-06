@@ -27,26 +27,29 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
 import { useToast } from "@/components/ui/Toast";
+import { useLocale } from "@/contexts";
 import type { User, UserRole, UserStatus, UserSession } from "@/types/database";
-
-const roleOptions: { value: UserRole; label: string; icon: React.ReactNode }[] = [
-  { value: "user", label: "Utilisateur", icon: <Users className="w-4 h-4" /> },
-  { value: "staff", label: "Staff", icon: <UserCog className="w-4 h-4" /> },
-  { value: "dev", label: "Développeur", icon: <Code className="w-4 h-4" /> },
-  { value: "admin", label: "Admin", icon: <Shield className="w-4 h-4" /> },
-];
-
-const statusOptions: { value: UserStatus; label: string; color: string }[] = [
-  { value: "pending", label: "En attente", color: "amber" },
-  { value: "active", label: "Actif", color: "emerald" },
-  { value: "suspended", label: "Suspendu", color: "red" },
-  { value: "banned", label: "Banni", color: "red" },
-];
 
 export default function AdminUsersPage() {
   const { showToast } = useToast();
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
+
+  const roleOptions: { value: UserRole; label: string; icon: React.ReactNode }[] = [
+    { value: "user", label: t("dash.adminUsers.role.user"), icon: <Users className="w-4 h-4" /> },
+    { value: "staff", label: t("dash.adminUsers.role.staff"), icon: <UserCog className="w-4 h-4" /> },
+    { value: "dev", label: t("dash.adminUsers.role.dev"), icon: <Code className="w-4 h-4" /> },
+    { value: "admin", label: t("dash.adminUsers.role.admin"), icon: <Shield className="w-4 h-4" /> },
+  ];
+
+  const statusOptions: { value: UserStatus; label: string; color: string }[] = [
+    { value: "pending", label: t("dash.adminUsers.status.pending"), color: "amber" },
+    { value: "active", label: t("dash.adminUsers.status.active"), color: "emerald" },
+    { value: "suspended", label: t("dash.adminUsers.status.suspended"), color: "red" },
+    { value: "banned", label: t("dash.adminUsers.status.banned"), color: "red" },
+  ];
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -170,8 +173,8 @@ export default function AdminUsersPage() {
         setSelectedUser({ ...selectedUser, ...data } as User);
       }
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Erreur inconnue';
-      showToast(`Erreur: ${msg}`, 'error');
+      const msg = error instanceof Error ? error.message : t('dash.common.unknownError');
+      showToast(`${t('dash.adminUsers.toast.error')}: ${msg}`, 'error');
       console.error("Error updating user:", error);
     } finally {
       setActionLoading(null);
@@ -181,17 +184,17 @@ export default function AdminUsersPage() {
   };
 
   const updateUserRole = (userId: string, newRole: UserRole) => {
-    const labels: Record<string, string> = { user: 'Utilisateur', staff: 'Staff', dev: 'Développeur', admin: 'Admin' };
-    updateUser(userId, { role: newRole }, `Rôle changé en ${labels[newRole]}`);
+    const roleLabel = roleOptions.find(r => r.value === newRole)?.label || newRole;
+    updateUser(userId, { role: newRole }, `${t('dash.adminUsers.toast.roleTo')} ${roleLabel}`);
   };
 
   const updateUserStatus = (userId: string, newStatus: UserStatus) => {
-    const labels: Record<string, string> = { active: 'activé', pending: 'mis en attente', suspended: 'suspendu', banned: 'banni' };
-    updateUser(userId, { status: newStatus }, `Utilisateur ${labels[newStatus]}`);
+    const toastKeys: Record<string, string> = { active: 'dash.adminUsers.toast.activated', pending: 'dash.adminUsers.toast.pending', suspended: 'dash.adminUsers.toast.suspended', banned: 'dash.adminUsers.toast.banned' };
+    updateUser(userId, { status: newStatus }, t(toastKeys[newStatus]));
   };
 
   const toggleFeatures = (userId: string, unlock: boolean) => {
-    updateUser(userId, { features_unlocked: unlock }, unlock ? 'Fonctionnalités débloquées' : 'Fonctionnalités verrouillées');
+    updateUser(userId, { features_unlocked: unlock }, unlock ? t('dash.adminUsers.toast.unlocked') : t('dash.adminUsers.toast.locked'));
   };
 
   const handleStatusAction = (userId: string, action: string) => {
@@ -199,7 +202,7 @@ export default function AdminUsersPage() {
       setShowConfirmModal({ 
         userId, 
         action, 
-        label: action === 'ban' ? 'Bannir cet utilisateur ?' : 'Suspendre cet utilisateur ?' 
+        label: action === 'ban' ? t('dash.adminUsers.banConfirm') : t('dash.adminUsers.suspendConfirm') 
       });
     } else if (action === 'activate') {
       updateUserStatus(userId, 'active');
@@ -214,10 +217,10 @@ export default function AdminUsersPage() {
 
   const getStatusBadge = (status: string) => {
     const labels: Record<string, string> = {
-      active: "Actif",
-      pending: "En attente",
-      suspended: "Suspendu",
-      banned: "Banni",
+      active: t("dash.adminUsers.status.active"),
+      pending: t("dash.adminUsers.status.pending"),
+      suspended: t("dash.adminUsers.status.suspended"),
+      banned: t("dash.adminUsers.status.banned"),
     };
     return (
       <span className="text-[10px] text-white/50 uppercase tracking-wider">
@@ -244,9 +247,9 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="border-b border-white/10 pb-6">
-        <p className="text-[10px] text-white/50 uppercase tracking-widest mb-2">Administration</p>
+        <p className="text-[10px] text-white/50 uppercase tracking-widest mb-2">{t("dash.adminUsers.label")}</p>
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-light text-white">Gestion des utilisateurs</h1>
+          <h1 className="text-xl font-light text-white">{t("dash.adminUsers.title")}</h1>
           <div className="flex items-center gap-2 px-3 py-1.5 border border-white/10">
             <Users className="w-3 h-3 text-white/50" />
             <span className="text-xs text-white/70">{totalCount}</span>
@@ -261,7 +264,7 @@ export default function AdminUsersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-white/40" />
             <input
               type="text"
-              placeholder="Rechercher par email, nom..."
+              placeholder={t("dash.adminUsers.search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-white/[0.02] border border-white/[0.06] pl-9 pr-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-white/10"
@@ -273,7 +276,7 @@ export default function AdminUsersPage() {
             onChange={(e) => setRoleFilter(e.target.value)}
             className="bg-white/[0.02] border border-white/[0.06] px-4 py-2.5 text-sm text-white focus:outline-none focus:border-white/10"
           >
-            <option value="all" className="bg-black">Tous les roles</option>
+            <option value="all" className="bg-black">{t("dash.adminUsers.allRoles")}</option>
             {roleOptions.map((role) => (
               <option key={role.value} value={role.value} className="bg-black">
                 {role.label}
@@ -286,7 +289,7 @@ export default function AdminUsersPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="bg-white/[0.02] border border-white/[0.06] px-4 py-2.5 text-sm text-white focus:outline-none focus:border-white/10"
           >
-            <option value="all" className="bg-black">Tous les statuts</option>
+            <option value="all" className="bg-black">{t("dash.adminUsers.allStatuses")}</option>
             {statusOptions.map((status) => (
               <option key={status.value} value={status.value} className="bg-black">
                 {status.label}
@@ -305,20 +308,20 @@ export default function AdminUsersPage() {
         ) : filteredUsers.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-white/40">
             <Users className="w-6 h-6 mb-4 opacity-40" />
-            <p className="text-sm">Aucun utilisateur trouve</p>
+            <p className="text-sm">{t("dash.adminUsers.noUser")}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/10">
-                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">Utilisateur</th>
-                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">Role</th>
-                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">Statut</th>
-                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">Features</th>
-                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">Inscription</th>
-                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">Connexion</th>
-                  <th className="text-right p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">Actions</th>
+                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.user")}</th>
+                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.role")}</th>
+                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.status")}</th>
+                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.features")}</th>
+                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.registered")}</th>
+                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.lastLogin")}</th>
+                  <th className="text-right p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -345,20 +348,20 @@ export default function AdminUsersPage() {
                     <td className="p-4">
                       {user.features_unlocked ? (
                         <span className="flex items-center gap-1.5 text-white/70 text-xs">
-                          <Unlock className="w-3 h-3" /> Debloque
+                          <Unlock className="w-3 h-3" /> {t("dash.adminUsers.unlocked")}
                         </span>
                       ) : (
                         <span className="flex items-center gap-1.5 text-white/40 text-xs">
-                          <Lock className="w-3 h-3" /> Verrouille
+                          <Lock className="w-3 h-3" /> {t("dash.adminUsers.locked")}
                         </span>
                       )}
                     </td>
                     <td className="p-4 text-white/50 text-xs">
-                      {format(new Date(user.created_at), "dd MMM yyyy", { locale: fr })}
+                      {format(new Date(user.created_at), "dd MMM yyyy", { locale: dateFnsLocale })}
                     </td>
                     <td className="p-4 text-white/50 text-xs">
                       {user.last_login_at
-                        ? format(new Date(user.last_login_at), "dd MMM HH:mm", { locale: fr })
+                        ? format(new Date(user.last_login_at), "dd MMM HH:mm", { locale: dateFnsLocale })
                         : "—"}
                     </td>
                     <td className="p-4">
@@ -372,7 +375,7 @@ export default function AdminUsersPage() {
                               <button
                                 onClick={() => handleStatusAction(user.id, 'activate')}
                                 className="p-1.5 hover:bg-emerald-500/10 transition-colors text-emerald-500/60 hover:text-emerald-400"
-                                title="Activer"
+                                title={t("dash.adminUsers.activate")}
                               >
                                 <UserCheck className="w-4 h-4" />
                               </button>
@@ -381,7 +384,7 @@ export default function AdminUsersPage() {
                               <button
                                 onClick={() => handleStatusAction(user.id, 'suspend')}
                                 className="p-1.5 hover:bg-amber-500/10 transition-colors text-white/30 hover:text-amber-400"
-                                title="Suspendre"
+                                title={t("dash.adminUsers.suspend")}
                               >
                                 <Pause className="w-4 h-4" />
                               </button>
@@ -390,7 +393,7 @@ export default function AdminUsersPage() {
                               <button
                                 onClick={() => handleStatusAction(user.id, 'activate')}
                                 className="p-1.5 hover:bg-emerald-500/10 transition-colors text-white/30 hover:text-emerald-400"
-                                title="Réactiver"
+                                title={t("dash.adminUsers.reactivate")}
                               >
                                 <UserCheck className="w-4 h-4" />
                               </button>
@@ -399,7 +402,7 @@ export default function AdminUsersPage() {
                             <button
                               onClick={() => openUserModal(user)}
                               className="p-1.5 hover:bg-white/[0.04] transition-colors text-white/30 hover:text-white/80"
-                              title="Détails"
+                              title={t("dash.adminUsers.details")}
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -413,7 +416,7 @@ export default function AdminUsersPage() {
                               </button>
                               {actionMenuOpen === user.id && (
                                 <div className="absolute right-0 top-full mt-1 bg-[#111] border border-white/10 py-1 z-50 min-w-[180px] shadow-xl">
-                                  <p className="px-3 py-1.5 text-[10px] text-white/30 uppercase tracking-wider">Changer le rôle</p>
+                                  <p className="px-3 py-1.5 text-[10px] text-white/30 uppercase tracking-wider">{t("dash.adminUsers.changeRole")}</p>
                                   {roleOptions.map((r) => (
                                     <button
                                       key={r.value}
@@ -426,13 +429,13 @@ export default function AdminUsersPage() {
                                     </button>
                                   ))}
                                   <div className="border-t border-white/[0.06] my-1" />
-                                  <p className="px-3 py-1.5 text-[10px] text-white/30 uppercase tracking-wider">Actions</p>
+                                  <p className="px-3 py-1.5 text-[10px] text-white/30 uppercase tracking-wider">{t("dash.adminUsers.actions")}</p>
                                   {user.status !== 'active' && (
                                     <button
                                       onClick={() => { setActionMenuOpen(null); handleStatusAction(user.id, 'activate'); }}
                                       className="w-full px-3 py-2 text-left text-sm text-emerald-400 hover:bg-white/[0.04] transition-colors flex items-center gap-2"
                                     >
-                                      <UserCheck className="w-4 h-4" /> Activer
+                                      <UserCheck className="w-4 h-4" /> {t("dash.adminUsers.activate")}
                                     </button>
                                   )}
                                   {user.status !== 'suspended' && (
@@ -440,7 +443,7 @@ export default function AdminUsersPage() {
                                       onClick={() => { setActionMenuOpen(null); handleStatusAction(user.id, 'suspend'); }}
                                       className="w-full px-3 py-2 text-left text-sm text-amber-400 hover:bg-white/[0.04] transition-colors flex items-center gap-2"
                                     >
-                                      <Pause className="w-4 h-4" /> Suspendre
+                                      <Pause className="w-4 h-4" /> {t("dash.adminUsers.suspend")}
                                     </button>
                                   )}
                                   {user.status !== 'banned' && (
@@ -448,7 +451,7 @@ export default function AdminUsersPage() {
                                       onClick={() => { setActionMenuOpen(null); handleStatusAction(user.id, 'ban'); }}
                                       className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-white/[0.04] transition-colors flex items-center gap-2"
                                     >
-                                      <Ban className="w-4 h-4" /> Bannir
+                                      <Ban className="w-4 h-4" /> {t("dash.adminUsers.ban")}
                                     </button>
                                   )}
                                   <div className="border-t border-white/[0.06] my-1" />
@@ -457,7 +460,7 @@ export default function AdminUsersPage() {
                                     className="w-full px-3 py-2 text-left text-sm text-white/60 hover:bg-white/[0.04] transition-colors flex items-center gap-2"
                                   >
                                     {user.features_unlocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                                    {user.features_unlocked ? 'Verrouiller features' : 'Débloquer features'}
+                                    {user.features_unlocked ? t('dash.adminUsers.lockFeatures') : t('dash.adminUsers.unlockFeatures')}
                                   </button>
                                 </div>
                               )}
@@ -477,7 +480,7 @@ export default function AdminUsersPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between p-4 border-t border-white/[0.06]">
             <p className="text-white/50 text-xs">
-              Page {currentPage} sur {totalPages}
+              {t("dash.adminUsers.page")} {currentPage} {t("dash.adminUsers.of")} {totalPages}
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -518,15 +521,15 @@ export default function AdminUsersPage() {
             </div>
             <p className="text-white/50 text-sm mb-6">
               {showConfirmModal.action === 'ban' 
-                ? "L'utilisateur ne pourra plus accéder au dashboard. Cette action est réversible."
-                : "L'utilisateur sera temporairement bloqué. Cette action est réversible."}
+                ? t("dash.adminUsers.banDesc")
+                : t("dash.adminUsers.suspendDesc")}
             </p>
             <div className="flex items-center gap-3 justify-end">
               <button
                 onClick={() => setShowConfirmModal(null)}
                 className="px-4 py-2 text-sm text-white/60 hover:text-white border border-white/10 hover:border-white/20 transition-colors"
               >
-                Annuler
+                {t("dash.adminUsers.cancel")}
               </button>
               <button
                 onClick={confirmAction}
@@ -537,7 +540,7 @@ export default function AdminUsersPage() {
                     : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30'
                 }`}
               >
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmer'}
+                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : t("dash.adminUsers.confirm")}
               </button>
             </div>
           </div>
@@ -580,7 +583,7 @@ export default function AdminUsersPage() {
               {/* Quick Actions */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] text-white/50 uppercase tracking-widest mb-2">Role</label>
+                  <label className="block text-[10px] text-white/50 uppercase tracking-widest mb-2">{t("dash.adminUsers.roleLabel")}</label>
                   <select
                     value={selectedUser.role}
                     onChange={(e) => updateUserRole(selectedUser.id, e.target.value as UserRole)}
@@ -595,7 +598,7 @@ export default function AdminUsersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-white/50 uppercase tracking-widest mb-2">Statut</label>
+                  <label className="block text-[10px] text-white/50 uppercase tracking-widest mb-2">{t("dash.adminUsers.statusLabel")}</label>
                   <select
                     value={selectedUser.status}
                     onChange={(e) => updateUserStatus(selectedUser.id, e.target.value as UserStatus)}
@@ -614,9 +617,9 @@ export default function AdminUsersPage() {
               <div className="p-5 border border-white/10">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/80 text-sm font-light">Fonctionnalites avancees</p>
+                    <p className="text-white/80 text-sm font-light">{t("dash.adminUsers.advancedFeatures")}</p>
                     <p className="text-white/40 text-xs">
-                      Projets, contrats, planning...
+                      {t("dash.adminUsers.advancedFeaturesDesc")}
                     </p>
                   </div>
                   <button
@@ -629,28 +632,28 @@ export default function AdminUsersPage() {
                       }
                     `}
                   >
-                    {selectedUser.features_unlocked ? "Verrouiller" : "Debloquer"}
+                    {selectedUser.features_unlocked ? t("dash.adminUsers.lock") : t("dash.adminUsers.unlock")}
                   </button>
                 </div>
               </div>
 
               {/* User Info */}
               <div>
-                <p className="text-[10px] text-white/50 uppercase tracking-widest mb-4">Informations</p>
+                <p className="text-[10px] text-white/50 uppercase tracking-widest mb-4">{t("dash.adminUsers.info")}</p>
                 <div className="grid grid-cols-2 gap-px bg-white/[0.06]">
                   <div className="flex items-center gap-3 p-4 bg-[#0a0a0a]">
                     <Mail className="w-4 h-4 text-white/40" />
                     <div>
-                      <p className="text-white/40 text-[10px] uppercase tracking-wider">Email</p>
+                      <p className="text-white/40 text-[10px] uppercase tracking-wider">{t("dash.adminUsers.email")}</p>
                       <p className="text-white/80 text-sm font-light">{selectedUser.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-4 bg-[#0a0a0a]">
                     <Clock className="w-4 h-4 text-white/40" />
                     <div>
-                      <p className="text-white/40 text-[10px] uppercase tracking-wider">Inscription</p>
+                      <p className="text-white/40 text-[10px] uppercase tracking-wider">{t("dash.adminUsers.registered")}</p>
                       <p className="text-white/80 text-sm font-light">
-                        {format(new Date(selectedUser.created_at), "dd MMM yyyy HH:mm", { locale: fr })}
+                        {format(new Date(selectedUser.created_at), "dd MMM yyyy HH:mm", { locale: dateFnsLocale })}
                       </p>
                     </div>
                   </div>
@@ -659,9 +662,9 @@ export default function AdminUsersPage() {
 
               {/* Sessions */}
               <div>
-                <p className="text-[10px] text-white/50 uppercase tracking-widest mb-4">Sessions recentes</p>
+                <p className="text-[10px] text-white/50 uppercase tracking-widest mb-4">{t("dash.adminUsers.recentSessions")}</p>
                 {userSessions.length === 0 ? (
-                  <p className="text-white/40 text-sm">Aucune session enregistree</p>
+                  <p className="text-white/40 text-sm">{t("dash.adminUsers.noSession")}</p>
                 ) : (
                   <div className="border border-white/[0.06]">
                     {userSessions.map((session, index) => (
@@ -678,20 +681,20 @@ export default function AdminUsersPage() {
                         </div>
                         <div className="flex-1">
                           <p className="text-white/70 text-sm font-light">
-                            {session.browser || "Navigateur inconnu"} - {session.os || "OS inconnu"}
+                            {session.browser || t("dash.adminUsers.unknownBrowser")} - {session.os || t("dash.adminUsers.unknownOS")}
                           </p>
                           <div className="flex items-center gap-2 text-white/40 text-xs">
                             <Globe className="w-3 h-3" />
-                            {session.ip_address || "IP inconnue"}
+                            {session.ip_address || t("dash.adminUsers.unknownIP")}
                             {session.country && ` - ${session.country}`}
                           </div>
                         </div>
                         <div className="text-right">
                           <p className="text-white/50 text-xs">
-                            {format(new Date(session.started_at), "dd MMM HH:mm", { locale: fr })}
+                            {format(new Date(session.started_at), "dd MMM HH:mm", { locale: dateFnsLocale })}
                           </p>
                           {session.is_active && (
-                            <span className="text-white/60 text-[10px] uppercase tracking-wider">Active</span>
+                            <span className="text-white/60 text-[10px] uppercase tracking-wider">{t("dash.adminUsers.sessionActive")}</span>
                           )}
                         </div>
                       </div>

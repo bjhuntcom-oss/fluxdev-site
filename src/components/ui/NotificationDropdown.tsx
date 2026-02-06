@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { Bell, MessageSquare, FileText, FolderKanban, Check, X } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
+import { useLocale } from "@/contexts";
 import Link from "next/link";
 
 interface Notification {
@@ -22,6 +23,8 @@ interface NotificationDropdownProps {
 }
 
 export function NotificationDropdown({ userId }: NotificationDropdownProps) {
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
@@ -150,13 +153,13 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
       {isOpen && (
         <div className="absolute right-0 top-full mt-2 w-80 bg-[#0a0a0a] border border-white/10 shadow-xl z-50">
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-            <span className="text-white/80 text-sm font-medium">Notifications</span>
+            <span className="text-white/80 text-sm font-medium">{t("dash.notif.title")}</span>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
                 className="text-white/40 text-xs hover:text-white/60 transition-colors"
               >
-                Tout marquer lu
+                {t("dash.notif.markAllRead")}
               </button>
             )}
           </div>
@@ -169,7 +172,7 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
             ) : notifications.length === 0 ? (
               <div className="p-8 text-center">
                 <Bell className="w-8 h-8 text-white/10 mx-auto mb-2" />
-                <p className="text-white/40 text-sm">Aucune notification</p>
+                <p className="text-white/40 text-sm">{t("dash.notif.noNotif")}</p>
               </div>
             ) : (
               notifications.map((notification) => (
@@ -192,7 +195,7 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
                         {notification.content}
                       </p>
                       <p className="text-white/30 text-[10px] mt-1">
-                        {format(new Date(notification.created_at), "dd MMM HH:mm", { locale: fr })}
+                        {format(new Date(notification.created_at), "dd MMM HH:mm", { locale: dateFnsLocale })}
                       </p>
                     </div>
                     {!notification.is_read && (
@@ -213,7 +216,7 @@ export function NotificationDropdown({ userId }: NotificationDropdownProps) {
                       }}
                       className="block mt-2 text-xs text-white/50 hover:text-white/70 transition-colors"
                     >
-                      Voir →
+                      {t("dash.notif.view")} →
                     </Link>
                   )}
                 </div>

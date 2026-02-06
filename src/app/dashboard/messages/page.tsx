@@ -25,8 +25,9 @@ import Image from "next/image";
 import { supabase, ensureClerkId } from "@/lib/supabase/client";
 import { sanitizeInput } from "@/lib/security";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
 import { useToast } from "@/components/ui/Toast";
+import { useLocale } from "@/contexts";
 
 interface Attachment {
   name: string;
@@ -86,6 +87,8 @@ export default function MessagesPage() {
   const { user } = useUser();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -509,7 +512,7 @@ export default function MessagesPage() {
       await loadMessages(selectedConversation);
     } catch (error) {
       console.error("Error sending message:", error);
-      showToast("Erreur lors de l'envoi du message", "error");
+      showToast(t("dash.msg.sendError"), "error");
     } finally {
       setIsSending(false);
       setIsUploading(false);
@@ -525,7 +528,7 @@ export default function MessagesPage() {
     const validFiles: File[] = [];
     for (const file of files) {
       if (file.size > MAX_FILE_SIZE) {
-        setUploadError(`"${file.name}" dépasse 10MB`);
+        setUploadError(`"${file.name}" ${t("dash.msg.exceeds10MB")}`);
         continue;
       }
       validFiles.push(file);
@@ -647,13 +650,13 @@ export default function MessagesPage() {
         <div className="p-4 border-b border-white/[0.06]">
           <div className="flex items-center justify-between mb-4">
             <p className="text-[10px] text-white/40 uppercase tracking-widest">
-              {showArchived ? 'Archives' : 'Messages'}
+              {showArchived ? t('dash.msg.archives') : t('dash.msg.title')}
             </p>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowArchived(!showArchived)}
                 className={`p-1.5 transition-colors ${showArchived ? 'bg-white/10' : 'hover:bg-white/[0.04]'}`}
-                title={showArchived ? 'Voir messages actifs' : 'Voir archives'}
+                title={showArchived ? t('dash.msg.viewActive') : t('dash.msg.viewArchives')}
               >
                 <Archive className="w-4 h-4 text-white/50" />
               </button>
@@ -672,7 +675,7 @@ export default function MessagesPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher..."
+              placeholder={t("dash.msg.search")}
               className="w-full bg-white/[0.03] border border-white/[0.06] pl-9 pr-4 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/10"
             />
           </div>
@@ -685,13 +688,13 @@ export default function MessagesPage() {
             </div>
           ) : filteredConversations.length === 0 ? (
             <div className="p-4 text-center text-white/40">
-              <p className="text-sm">{showArchived ? 'Aucune archive' : 'Aucune conversation'}</p>
+              <p className="text-sm">{showArchived ? t('dash.msg.noArchive') : t('dash.msg.noConv')}</p>
               {!showArchived && (
                 <button
                   onClick={() => setShowNewConversation(true)}
                   className="mt-3 px-4 py-2 bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 text-sm transition-all duration-200 active:scale-95"
                 >
-                  + Démarrer une conversation
+                  + {t("dash.msg.startNewConv")}
                 </button>
               )}
             </div>
@@ -701,7 +704,7 @@ export default function MessagesPage() {
               const roleLabel = userInfo?.role === 'admin' ? 'Admin' : 
                                userInfo?.role === 'staff' ? 'Staff' : 
                                userInfo?.role === 'dev' ? 'Dev' : 'User';
-              const userName = userInfo ? `${userInfo.first_name || ''} ${userInfo.last_name || ''}`.trim() : 'Utilisateur';
+              const userName = userInfo ? `${userInfo.first_name || ''} ${userInfo.last_name || ''}`.trim() : t('dash.msg.userLabel');
               
               return (
                 <button
@@ -719,7 +722,7 @@ export default function MessagesPage() {
                   <div className="flex items-start justify-between mb-1">
                     <div className="flex items-center gap-2 pr-2 min-w-0">
                       <h3 className="text-white/80 text-sm font-light truncate">
-                        {conversation.subject || "Nouvelle conversation"}
+                        {conversation.subject || t("dash.msg.newConv")}
                       </h3>
                       {(conversation.unread_count ?? 0) > 0 && (
                         <span className="flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center bg-white text-black text-[10px] font-medium rounded-full">
@@ -728,7 +731,7 @@ export default function MessagesPage() {
                       )}
                     </div>
                     <span className="text-white/30 text-[10px] flex-shrink-0">
-                      {format(new Date(conversation.updated_at), "HH:mm", { locale: fr })}
+                      {format(new Date(conversation.updated_at), "HH:mm", { locale: dateFnsLocale })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 mb-1">
@@ -738,7 +741,7 @@ export default function MessagesPage() {
                     <span className="text-white/50 text-xs truncate">{userName}</span>
                   </div>
                   <p className="text-white/40 text-xs truncate">
-                    {conversation.status === "archived" ? "Archivee" : conversation.status === "open" ? "En cours" : "Fermee"}
+                    {conversation.status === "archived" ? t("dash.msg.status.archived") : conversation.status === "open" ? t("dash.msg.status.open") : t("dash.msg.status.closed")}
                   </p>
                 </button>
               );
@@ -754,7 +757,7 @@ export default function MessagesPage() {
             {/* Chat Header */}
             <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
               <div>
-                <h3 className="text-white/90 text-sm font-light">{selectedConv.subject || "Conversation"}</h3>
+                <h3 className="text-white/90 text-sm font-light">{selectedConv.subject || t("dash.msg.newConv")}</h3>
                 <div className="flex items-center gap-2 mt-1">
                   {(() => {
                     const convUser = Array.isArray(selectedConv.user) ? selectedConv.user[0] : selectedConv.user;
@@ -768,7 +771,7 @@ export default function MessagesPage() {
                         <span className="text-white/50 text-xs">{convName}</span>
                         <span className="text-white/30 text-xs">-</span>
                         <span className="text-white/40 text-xs">
-                          {selectedConv.status === "archived" ? "Archivee" : selectedConv.status === "open" ? "Active" : "Fermee"}
+                          {selectedConv.status === "archived" ? t("dash.msg.status.archived") : selectedConv.status === "open" ? t("dash.msg.status.open") : t("dash.msg.status.closed")}
                         </span>
                       </>
                     );
@@ -777,7 +780,7 @@ export default function MessagesPage() {
                 {/* Show assigned staff info */}
                 {selectedConv.assigned_staff && (
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-white/30">Assigné à:</span>
+                    <span className="text-[10px] text-white/30">{t("dash.msg.assignedTo")}:</span>
                     <span className="text-[10px] px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400">
                       {(() => {
                         const staff = Array.isArray(selectedConv.assigned_staff) ? selectedConv.assigned_staff[0] : selectedConv.assigned_staff;
@@ -789,7 +792,7 @@ export default function MessagesPage() {
                         onClick={() => unassignConversation(selectedConv.id)}
                         className="text-[10px] text-red-400/60 hover:text-red-400"
                       >
-                        Retirer
+                        {t("dash.msg.remove")}
                       </button>
                     )}
                   </div>
@@ -797,12 +800,12 @@ export default function MessagesPage() {
                 {/* Admin can assign if not assigned */}
                 {currentUserRole === 'admin' && !selectedConv.assigned_staff_id && (
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-amber-400/60">Non assigné</span>
+                    <span className="text-[10px] text-amber-400/60">{t("dash.msg.unassigned")}</span>
                     <button
                       onClick={() => setShowAssignModal(selectedConv.id)}
                       className="text-[10px] px-2 py-0.5 bg-white/5 border border-white/10 text-white/60 hover:bg-white/10"
                     >
-                      Assigner à un staff
+                      {t("dash.msg.assignStaff")}
                     </button>
                   </div>
                 )}
@@ -825,12 +828,12 @@ export default function MessagesPage() {
                       {selectedConv.status === 'archived' ? (
                         <>
                           <ArchiveRestore className="w-4 h-4" />
-                          Desarchiver
+                          {t("dash.msg.unarchive")}
                         </>
                       ) : (
                         <>
                           <Archive className="w-4 h-4" />
-                          Archiver
+                          {t("dash.msg.archive")}
                         </>
                       )}
                     </button>
@@ -844,7 +847,7 @@ export default function MessagesPage() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-white/40">
-                  <p className="text-sm">Commencez la conversation...</p>
+                  <p className="text-sm">{t("dash.msg.startConv")}</p>
                 </div>
               ) : (
                 messages.map((message) => {
@@ -853,8 +856,8 @@ export default function MessagesPage() {
                                     message.sender?.role === 'admin' ? 'Admin' : 
                                     message.sender?.role === 'staff' ? 'Staff' : 
                                     message.sender?.role === 'dev' ? 'Dev' : 'User';
-                  const senderName = isOwn ? 'Moi' : 
-                                    `${message.sender?.first_name || ''} ${message.sender?.last_name || ''}`.trim() || 'Utilisateur';
+                  const senderName = isOwn ? t('dash.msg.me') : 
+                                    `${message.sender?.first_name || ''} ${message.sender?.last_name || ''}`.trim() || t('dash.msg.userLabel');
                   return (
                     <div
                       key={message.id}
@@ -1000,7 +1003,7 @@ export default function MessagesPage() {
                         sendMessage();
                       }
                     }}
-                    placeholder={pendingFiles.length > 0 ? "Ajoutez un message (optionnel)..." : "Ecrivez votre message..."}
+                    placeholder={pendingFiles.length > 0 ? t("dash.msg.addMessageOptional") : t("dash.msg.typePlaceholder")}
                     rows={1}
                     className="w-full bg-white/[0.03] border border-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/10 resize-none"
                   />
@@ -1026,8 +1029,8 @@ export default function MessagesPage() {
           <div className="flex-1 flex items-center justify-center text-white/40">
             <div className="text-center">
               <MessageSquare className="w-8 h-8 mx-auto mb-4 opacity-40" />
-              <p className="text-sm text-white/50">Selectionnez une conversation</p>
-              <p className="text-xs text-white/30">ou creez-en une nouvelle</p>
+              <p className="text-sm text-white/50">{t("dash.msg.selectConv")}</p>
+              <p className="text-xs text-white/30">{t("dash.msg.selectConvDesc")}</p>
             </div>
           </div>
         )}
@@ -1056,7 +1059,7 @@ export default function MessagesPage() {
                       className="w-full px-4 py-2 text-left text-sm text-white/70 hover:bg-white/[0.06] flex items-center gap-3 transition-colors"
                     >
                       <Check className="w-4 h-4" />
-                      Marquer comme lu
+                      {t("dash.msg.markRead")}
                     </button>
                   )}
                   <button
@@ -1066,12 +1069,12 @@ export default function MessagesPage() {
                     {isArchived ? (
                       <>
                         <ArchiveRestore className="w-4 h-4" />
-                        Desarchiver
+                        {t("dash.msg.unarchive")}
                       </>
                     ) : (
                       <>
                         <Archive className="w-4 h-4" />
-                        Archiver
+                        {t("dash.msg.archive")}
                       </>
                     )}
                   </button>
@@ -1081,7 +1084,7 @@ export default function MessagesPage() {
                     className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-3 transition-colors"
                   >
                     <X className="w-4 h-4" />
-                    Supprimer
+                    {t("dash.msg.delete")}
                   </button>
                 </>
               );
@@ -1101,7 +1104,7 @@ export default function MessagesPage() {
             className="bg-[#0a0a0a] border border-white/[0.06] p-6 w-full max-w-md"
           >
             <div className="flex items-center justify-between mb-6">
-              <p className="text-[10px] text-white/40 uppercase tracking-widest">Assigner à un membre de l&apos;équipe</p>
+              <p className="text-[10px] text-white/40 uppercase tracking-widest">{t("dash.msg.assignTeamMember")}</p>
               <button
                 onClick={() => setShowAssignModal(null)}
                 className="p-1.5 hover:bg-white/[0.04] transition-colors"
@@ -1112,7 +1115,7 @@ export default function MessagesPage() {
             
             <div className="space-y-2 max-h-[300px] overflow-y-auto">
               {staffList.length === 0 ? (
-                <p className="text-white/40 text-sm text-center py-4">Aucun staff disponible</p>
+                <p className="text-white/40 text-sm text-center py-4">{t("dash.msg.noStaff")}</p>
               ) : (
                 staffList.map((staff) => (
                   <button
@@ -1148,7 +1151,7 @@ export default function MessagesPage() {
             className="bg-[#0a0a0a] border border-white/[0.08] p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200"
           >
             <div className="flex items-center justify-between mb-6">
-              <p className="text-[10px] text-white/40 uppercase tracking-widest">Nouvelle conversation</p>
+              <p className="text-[10px] text-white/40 uppercase tracking-widest">{t("dash.msg.newConv")}</p>
               <button
                 onClick={() => !isCreating && setShowNewConversation(false)}
                 disabled={isCreating}
@@ -1160,7 +1163,7 @@ export default function MessagesPage() {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Sujet</label>
+                <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">{t("dash.msg.subject")}</label>
                 <input
                   type="text"
                   value={newSubject}
@@ -1171,7 +1174,7 @@ export default function MessagesPage() {
                       createConversation();
                     }
                   }}
-                  placeholder="Ex: Question sur mon projet..."
+                  placeholder={t("dash.msg.subjectPlaceholder")}
                   className="w-full bg-white/[0.03] border border-white/[0.08] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/20 transition-colors"
                   autoFocus
                   disabled={isCreating}
@@ -1186,10 +1189,10 @@ export default function MessagesPage() {
                 {isCreating ? (
                   <>
                     <div className="w-4 h-4 border-2 border-black/20 border-t-black animate-spin rounded-full" />
-                    <span>Création en cours...</span>
+                    <span>{t("dash.msg.creating")}</span>
                   </>
                 ) : (
-                  <span>Démarrer la conversation</span>
+                  <span>{t("dash.msg.startConvBtn")}</span>
                 )}
               </button>
             </div>

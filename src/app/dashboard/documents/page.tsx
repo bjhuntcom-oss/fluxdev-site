@@ -16,9 +16,10 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
 import { sanitizeInput } from "@/lib/security";
 import { useToast } from "@/components/ui/Toast";
+import { useLocale } from "@/contexts";
 
 interface Document {
   id: string;
@@ -32,12 +33,12 @@ interface Document {
   created_at: string;
 }
 
-const documentTypes = [
-  { value: "cahier_charges", label: "Cahier des charges" },
-  { value: "maquette", label: "Maquette / Design" },
-  { value: "contrat", label: "Contrat" },
-  { value: "facture", label: "Facture" },
-  { value: "autre", label: "Autre" },
+const documentTypesBase = [
+  { value: "cahier_charges", labelFr: "Cahier des charges", labelEn: "Specifications" },
+  { value: "maquette", labelFr: "Maquette / Design", labelEn: "Mockup / Design" },
+  { value: "contrat", labelFr: "Contrat", labelEn: "Contract" },
+  { value: "facture", labelFr: "Facture", labelEn: "Invoice" },
+  { value: "autre", labelFr: "Autre", labelEn: "Other" },
 ];
 
 const getFileIcon = (type: string) => {
@@ -59,6 +60,8 @@ const ITEMS_PER_PAGE = 12;
 export default function DocumentsPage() {
   const { user } = useUser();
   const { showToast } = useToast();
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -142,7 +145,7 @@ export default function DocumentsPage() {
       const err = error as { message?: string };
       if (!err.message?.includes('does not exist')) {
         console.error("Error loading documents:", error);
-        setError("Erreur lors du chargement des documents");
+        setError(t("dash.doc.loadError"));
       }
       setDocuments([]);
     } finally {
@@ -173,7 +176,7 @@ export default function DocumentsPage() {
   const handleFileSelect = (file: File) => {
     const maxSize = 50 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
-      setError("Le fichier est trop volumineux (max 50MB)");
+      setError(t("dash.doc.fileTooLarge"));
       return;
     }
 
@@ -191,7 +194,7 @@ export default function DocumentsPage() {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      setError("Type de fichier non autorisé");
+      setError(t("dash.doc.fileTypeNotAllowed"));
       return;
     }
 
@@ -271,15 +274,15 @@ export default function DocumentsPage() {
       if (dbError) throw dbError;
 
       setUploadProgress(100);
-      setSuccess("Document uploadé avec succès");
+      setSuccess(t("dash.doc.uploadSuccess"));
       setShowUploadModal(false);
       setSelectedFile(null);
       setDocumentType("autre");
       loadDocuments();
     } catch (error) {
       console.error("Error uploading document:", error);
-      setError("Erreur lors de l'upload du document");
-      showToast("Erreur lors de l'upload du document", "error");
+      setError(t("dash.doc.uploadError"));
+      showToast(t("dash.doc.uploadError"), "error");
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -287,7 +290,7 @@ export default function DocumentsPage() {
   };
 
   const deleteDocument = async (doc: Document) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce document ?")) return;
+    if (!confirm(t("dash.doc.deleteConfirm"))) return;
 
     try {
       const { error: storageError } = await supabase.storage
@@ -304,12 +307,12 @@ export default function DocumentsPage() {
       if (dbError) throw dbError;
 
       setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
-      setSuccess("Document supprimé");
-      showToast("Document supprimé", "success");
+      setSuccess(t("dash.doc.deleteSuccess"));
+      showToast(t("dash.doc.deleteSuccess"), "success");
     } catch (error) {
       console.error("Error deleting document:", error);
-      setError("Erreur lors de la suppression");
-      showToast("Erreur lors de la suppression du document", "error");
+      setError(t("dash.doc.deleteError"));
+      showToast(t("dash.doc.deleteError"), "error");
     }
   };
 
@@ -319,15 +322,15 @@ export default function DocumentsPage() {
       <div className="border-b border-white/[0.06] pb-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2">Fichiers</p>
-            <h1 className="text-xl font-light text-white">Documents</h1>
+            <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2">{t("dash.doc.label")}</p>
+            <h1 className="text-xl font-light text-white">{t("dash.doc.title")}</h1>
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-white text-black text-sm font-medium hover:bg-white/90 transition-colors"
           >
             <Upload className="w-4 h-4" />
-            Uploader
+            {t("dash.doc.upload")}
           </button>
         </div>
       </div>
@@ -365,11 +368,11 @@ export default function DocumentsPage() {
         `}
       >
         <Upload className="w-8 h-8 mx-auto text-white/30 mb-4" />
-        <p className="text-white/60 text-sm mb-2">Glissez-deposez vos fichiers ici</p>
-        <p className="text-white/30 text-xs mb-4">ou</p>
+        <p className="text-white/60 text-sm mb-2">{t("dash.doc.dragDrop")}</p>
+        <p className="text-white/30 text-xs mb-4">{locale === 'fr' ? 'ou' : 'or'}</p>
         <label className="cursor-pointer">
           <span className="px-4 py-2 border border-white/10 text-white/70 text-sm hover:bg-white/[0.04] transition-colors">
-            Parcourir
+            {t("dash.doc.browse")}
           </span>
           <input
             type="file"
@@ -379,13 +382,13 @@ export default function DocumentsPage() {
           />
         </label>
         <p className="text-white/20 text-xs mt-4">
-          PDF, Images, Word, Excel, ZIP (max 50MB)
+          {t("dash.doc.maxSize")}
         </p>
       </div>
 
       {/* Documents List */}
       <div>
-        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-4">Vos documents</p>
+        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-4">{t("dash.doc.yourDocs")}</p>
         
         {isLoading ? (
           <div className="flex items-center justify-center h-32">
@@ -394,8 +397,8 @@ export default function DocumentsPage() {
         ) : documents.length === 0 ? (
           <div className="text-center py-12 text-white/40">
             <FolderOpen className="w-8 h-8 mx-auto mb-4 opacity-40" />
-            <p className="text-sm text-white/50">Aucun document</p>
-            <p className="text-xs text-white/30">Uploadez votre premier fichier</p>
+            <p className="text-sm text-white/50">{t("dash.doc.noDoc")}</p>
+            <p className="text-xs text-white/30">{t("dash.doc.noDocDesc")}</p>
           </div>
         ) : (
           <>
@@ -416,9 +419,9 @@ export default function DocumentsPage() {
                   <div className="flex items-center gap-3 text-white/40 text-xs">
                     <span>{formatFileSize(doc.file_size)}</span>
                     <span>-</span>
-                    <span>{documentTypes.find((t) => t.value === doc.document_type)?.label || "Autre"}</span>
+                    <span>{documentTypesBase.find((dt) => dt.value === doc.document_type)?.[locale === 'fr' ? 'labelFr' : 'labelEn'] || (locale === 'fr' ? 'Autre' : 'Other')}</span>
                     <span>-</span>
-                    <span>{format(new Date(doc.created_at), "dd MMM yyyy", { locale: fr })}</span>
+                    <span>{format(new Date(doc.created_at), "dd MMM yyyy", { locale: dateFnsLocale })}</span>
                   </div>
                 </div>
 
@@ -426,7 +429,7 @@ export default function DocumentsPage() {
                   <button
                     onClick={() => setPreviewDoc(doc)}
                     className="p-2 hover:bg-white/[0.04] transition-colors text-white/40 hover:text-white/70"
-                    title="Aperçu"
+                    title={t("dash.doc.preview")}
                   >
                     <Eye className="w-4 h-4" />
                   </button>
@@ -452,7 +455,7 @@ export default function DocumentsPage() {
           {documents.length > ITEMS_PER_PAGE && (
             <div className="flex items-center justify-between mt-4 text-sm">
               <span className="text-white/40">
-                {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, documents.length)} sur {documents.length}
+                {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, documents.length)} {locale === 'fr' ? 'sur' : 'of'} {documents.length}
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -460,7 +463,7 @@ export default function DocumentsPage() {
                   disabled={currentPage === 1}
                   className="px-3 py-1 border border-white/10 text-white/60 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
-                  Précédent
+                  {t("dash.doc.previous")}
                 </button>
                 <span className="text-white/50 px-2">
                   {currentPage} / {Math.ceil(documents.length / ITEMS_PER_PAGE)}
@@ -470,7 +473,7 @@ export default function DocumentsPage() {
                   disabled={currentPage >= Math.ceil(documents.length / ITEMS_PER_PAGE)}
                   className="px-3 py-1 border border-white/10 text-white/60 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
-                  Suivant
+                  {t("dash.doc.next")}
                 </button>
               </div>
             </div>
@@ -520,9 +523,9 @@ export default function DocumentsPage() {
                     onChange={(e) => setDocumentType(e.target.value)}
                     className="w-full bg-white/[0.03] border border-white/[0.06] px-4 py-3 text-sm text-white focus:outline-none focus:border-white/10"
                   >
-                    {documentTypes.map((type) => (
+                    {documentTypesBase.map((type) => (
                       <option key={type.value} value={type.value} className="bg-black">
-                        {type.label}
+                        {locale === 'fr' ? type.labelFr : type.labelEn}
                       </option>
                     ))}
                   </select>
@@ -531,7 +534,7 @@ export default function DocumentsPage() {
                 {isUploading && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-white/50">Upload en cours...</span>
+                      <span className="text-white/50">{t("dash.doc.uploading")}</span>
                       <span className="text-white/70">{uploadProgress}%</span>
                     </div>
                     <div className="h-1 bg-white/[0.06] overflow-hidden">
@@ -552,7 +555,7 @@ export default function DocumentsPage() {
                     disabled={isUploading}
                     className="flex-1 py-3 border border-white/[0.06] text-white/70 text-sm hover:bg-white/[0.02] transition-colors disabled:opacity-50"
                   >
-                    Annuler
+                    {t("dash.doc.cancel")}
                   </button>
                   <button
                     onClick={uploadDocument}
@@ -562,12 +565,12 @@ export default function DocumentsPage() {
                     {isUploading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Upload...
+                        {t("dash.doc.uploading")}
                       </>
                     ) : (
                       <>
                         <Upload className="w-4 h-4" />
-                        Uploader
+                        {t("dash.doc.upload")}
                       </>
                     )}
                   </button>
@@ -577,7 +580,7 @@ export default function DocumentsPage() {
               <label className="block cursor-pointer">
                 <div className="border border-dashed border-white/[0.08] p-8 text-center hover:border-white/10 transition-colors">
                   <Upload className="w-8 h-8 mx-auto text-white/30 mb-4" />
-                  <p className="text-white/60 text-sm mb-2">Selectionnez un fichier</p>
+                  <p className="text-white/60 text-sm mb-2">{t("dash.doc.selectFile")}</p>
                   <p className="text-white/30 text-xs">PDF, Images, Word, Excel, ZIP</p>
                 </div>
                 <input
@@ -616,7 +619,7 @@ export default function DocumentsPage() {
                   href={previewDoc.file_url}
                   download={previewDoc.file_name}
                   className="p-2 hover:bg-white/[0.04] transition-colors text-white/40 hover:text-white/70"
-                  title="Telecharger"
+                  title={t("dash.doc.download")}
                 >
                   <Download className="w-4 h-4" />
                 </a>
@@ -625,7 +628,7 @@ export default function DocumentsPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2 hover:bg-white/[0.04] transition-colors text-white/40 hover:text-white/70"
-                  title="Ouvrir dans un nouvel onglet"
+                  title={t("dash.doc.openNewTab")}
                 >
                   <Eye className="w-4 h-4" />
                 </a>
@@ -663,7 +666,7 @@ export default function DocumentsPage() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <div className="text-white/20 mb-4">{getFileIcon(previewDoc.file_type)}</div>
-                  <p className="text-white/60 text-sm mb-2">Apercu non disponible pour ce type de fichier</p>
+                  <p className="text-white/60 text-sm mb-2">{t("dash.doc.noPreview")}</p>
                   <p className="text-white/40 text-xs mb-4">{previewDoc.file_type}</p>
                   <a
                     href={previewDoc.file_url}
@@ -671,7 +674,7 @@ export default function DocumentsPage() {
                     className="px-4 py-2 bg-white/5 border border-white/10 text-white/70 text-sm hover:bg-white/10 transition-colors flex items-center gap-2"
                   >
                     <Download className="w-4 h-4" />
-                    Telecharger le fichier
+                    {t("dash.doc.downloadFile")}
                   </a>
                 </div>
               )}

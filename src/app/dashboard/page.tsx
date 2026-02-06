@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { useLocale } from "@/contexts";
 
 interface QuickAction {
   title: string;
@@ -29,6 +30,7 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
+  const { locale, t } = useLocale();
   const [stats, setStats] = useState<DashboardStats>({
     unreadMessages: 0,
     documentsCount: 0,
@@ -139,28 +141,28 @@ export default function DashboardPage() {
 
   const quickActions: QuickAction[] = [
     {
-      title: "Messages",
+      title: t("dash.nav.messages"),
       description: stats.unreadMessages > 0 
-        ? `${stats.unreadMessages} message${stats.unreadMessages > 1 ? 's' : ''} non lu${stats.unreadMessages > 1 ? 's' : ''}`
-        : "Discutez avec notre equipe",
+        ? `${stats.unreadMessages} ${stats.unreadMessages > 1 ? t("dash.main.unreadMsgs") : t("dash.main.unreadMsg")}`
+        : t("dash.main.talkTeam"),
       href: "/dashboard/messages",
       icon: <MessageSquare className="w-4 h-4" />,
       count: stats.unreadMessages,
     },
     {
-      title: "Documents",
+      title: t("dash.nav.documents"),
       description: stats.documentsCount > 0 
-        ? `${stats.documentsCount} document${stats.documentsCount > 1 ? 's' : ''} envoye${stats.documentsCount > 1 ? 's' : ''}`
-        : "Envoyez vos fichiers",
+        ? `${stats.documentsCount} ${stats.documentsCount > 1 ? t("dash.main.docsSent") : t("dash.main.docSent")}`
+        : t("dash.main.sendFiles"),
       href: "/dashboard/documents",
       icon: <FileText className="w-4 h-4" />,
       count: stats.documentsCount,
     },
     {
-      title: "Projets",
+      title: t("dash.nav.projects"),
       description: stats.projectsCount > 0 
-        ? `${stats.projectsCount} projet${stats.projectsCount > 1 ? 's' : ''} en cours`
-        : "Gérez vos projets",
+        ? `${stats.projectsCount} ${stats.projectsCount > 1 ? t("dash.main.projsOngoing") : t("dash.main.projOngoing")}`
+        : t("dash.main.manageProjects"),
       href: "/dashboard/projets",
       icon: <FolderKanban className="w-4 h-4" />,
       count: stats.projectsCount,
@@ -181,12 +183,12 @@ export default function DashboardPage() {
       <div className="border-b border-white/10 pb-8">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <p className="text-[10px] text-white/50 uppercase tracking-widest mb-2">Espace personnel</p>
+            <p className="text-[10px] text-white/50 uppercase tracking-widest mb-2">{t("dash.main.personalSpace")}</p>
             <h1 className="text-2xl font-light text-white">
-              Bonjour, {user?.firstName || "Utilisateur"} 👋
+              {t("dash.main.hello")}, {user?.firstName || t("dash.main.user")} 👋
             </h1>
             <p className="text-white/40 text-sm mt-1">
-              {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              {new Date().toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
           </div>
           <Link 
@@ -194,7 +196,7 @@ export default function DashboardPage() {
             className="flex items-center gap-2 px-4 py-2 bg-white text-black text-sm hover:bg-white/90 transition-all duration-200 active:scale-95"
           >
             <MessageSquare className="w-4 h-4" />
-            Messagerie
+            {t("dash.main.messaging")}
             {stats.unreadMessages > 0 && (
               <span className="ml-1 px-1.5 py-0.5 bg-black text-white text-[10px] rounded-full">
                 {stats.unreadMessages}
@@ -207,7 +209,7 @@ export default function DashboardPage() {
       {/* Quick Actions with Stats */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <p className="text-[10px] text-white/50 uppercase tracking-widest">Actions rapides</p>
+          <p className="text-[10px] text-white/50 uppercase tracking-widest">{t("dash.main.quickActions")}</p>
           {isLoading && <Loader2 className="w-3 h-3 text-white/30 animate-spin" />}
         </div>
         <div className="border border-white/10">
@@ -243,7 +245,7 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div>
-        <p className="text-[10px] text-white/50 uppercase tracking-widest mb-4">Aperçu</p>
+        <p className="text-[10px] text-white/50 uppercase tracking-widest mb-4">{t("dash.main.overview")}</p>
         <div className="grid grid-cols-3 border border-white/10">
           <Link href="/dashboard/messages" className="p-5 border-r border-white/[0.06] hover:bg-white/[0.02] transition-colors group">
             <div className="flex items-center justify-between mb-2">
@@ -253,21 +255,21 @@ export default function DashboardPage() {
               )}
             </div>
             <p className="text-3xl font-light text-white mb-1">{stats.unreadMessages}</p>
-            <p className="text-[10px] text-white/50 uppercase tracking-wider">Messages non lus</p>
+            <p className="text-[10px] text-white/50 uppercase tracking-wider">{t("dash.main.unreadMessages")}</p>
           </Link>
           <Link href="/dashboard/documents" className="p-5 border-r border-white/[0.06] hover:bg-white/[0.02] transition-colors group">
             <div className="flex items-center justify-between mb-2">
               <FileText className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors" />
             </div>
             <p className="text-3xl font-light text-white mb-1">{stats.documentsCount}</p>
-            <p className="text-[10px] text-white/50 uppercase tracking-wider">Documents</p>
+            <p className="text-[10px] text-white/50 uppercase tracking-wider">{t("dash.nav.documents")}</p>
           </Link>
           <Link href="/dashboard/projets" className="p-5 transition-colors group hover:bg-white/[0.02]">
             <div className="flex items-center justify-between mb-2">
               <FolderKanban className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors" />
             </div>
             <p className="text-3xl font-light text-white mb-1">{stats.projectsCount}</p>
-            <p className="text-[10px] text-white/50 uppercase tracking-wider">Projets</p>
+            <p className="text-[10px] text-white/50 uppercase tracking-wider">{t("dash.nav.projects")}</p>
           </Link>
         </div>
       </div>
@@ -276,14 +278,14 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Available Features */}
         <div className="border border-white/10 p-6">
-          <p className="text-[10px] text-white/50 uppercase tracking-widest mb-5">Fonctionnalités incluses</p>
+          <p className="text-[10px] text-white/50 uppercase tracking-widest mb-5">{t("dash.main.features")}</p>
           <div className="space-y-4">
             {[
-              "Messagerie avec l'équipe FluxDev",
-              "Envoi et gestion de documents",
-              "Suivi de projets en temps réel",
-              "Contrats et devis en ligne",
-              "Planning et calendrier partagé",
+              t("dash.main.feature1"),
+              t("dash.main.feature2"),
+              t("dash.main.feature3"),
+              t("dash.main.feature4"),
+              t("dash.main.feature5"),
             ].map((feature, index) => (
               <div 
                 key={index} 
@@ -298,27 +300,27 @@ export default function DashboardPage() {
 
         {/* Getting Started Guide */}
         <div className="border border-white/10 p-6">
-          <p className="text-[10px] text-white/50 uppercase tracking-widest mb-5">Pour commencer</p>
+          <p className="text-[10px] text-white/50 uppercase tracking-widest mb-5">{t("dash.main.getStarted")}</p>
           <div className="space-y-4">
             <div className="flex gap-4 py-2 border-b border-white/[0.04]">
               <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/60 text-xs">1</span>
               <div>
-                <p className="text-white/80 text-sm font-light">Présentez votre projet</p>
-                <p className="text-white/50 text-xs font-light">Utilisez la messagerie pour décrire votre besoin</p>
+                <p className="text-white/80 text-sm font-light">{t("dash.main.step1.title")}</p>
+                <p className="text-white/50 text-xs font-light">{t("dash.main.step1.desc")}</p>
               </div>
             </div>
             <div className="flex gap-4 py-2 border-b border-white/[0.04]">
               <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/60 text-xs">2</span>
               <div>
-                <p className="text-white/80 text-sm font-light">Partagez vos documents</p>
-                <p className="text-white/50 text-xs font-light">Cahier des charges, maquettes, références</p>
+                <p className="text-white/80 text-sm font-light">{t("dash.main.step2.title")}</p>
+                <p className="text-white/50 text-xs font-light">{t("dash.main.step2.desc")}</p>
               </div>
             </div>
             <div className="flex gap-4 py-2">
               <span className="flex-shrink-0 w-6 h-6 border border-white/20 flex items-center justify-center text-white/60 text-xs">3</span>
               <div>
-                <p className="text-white/80 text-sm font-light">Recevez votre devis</p>
-                <p className="text-white/50 text-xs font-light">Notre équipe vous répondra sous 24h</p>
+                <p className="text-white/80 text-sm font-light">{t("dash.main.step3.title")}</p>
+                <p className="text-white/50 text-xs font-light">{t("dash.main.step3.desc")}</p>
               </div>
             </div>
           </div>

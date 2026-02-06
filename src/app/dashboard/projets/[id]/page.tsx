@@ -9,7 +9,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS } from 'date-fns/locale';
+import { useLocale } from '@/contexts';
 import Link from 'next/link';
 
 interface Task {
@@ -37,6 +38,8 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useUser();
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [unauthorized, setUnauthorized] = useState(false);
@@ -184,7 +187,7 @@ export default function ProjectDetailPage() {
   };
 
   const deleteProject = async () => {
-    if (!project || !confirm('Supprimer définitivement ce projet ?')) return;
+    if (!project || !confirm(t('dash.projDetail.deleteConfirm'))) return;
     try {
       const { error } = await supabase.from('projects').delete().eq('id', project.id);
       if (error) throw error;
@@ -207,9 +210,9 @@ export default function ProjectDetailPage() {
 
   const getPriorityLabel = (priority: string) => {
     switch (priority) {
-      case 'high': return 'Haute';
-      case 'low': return 'Basse';
-      default: return 'Moyenne';
+      case 'high': return t('dash.projDetail.priority.high');
+      case 'low': return t('dash.projDetail.priority.low');
+      default: return t('dash.projDetail.priority.medium');
     }
   };
 
@@ -224,10 +227,10 @@ export default function ProjectDetailPage() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'active': return 'Actif';
-      case 'completed': return 'Terminé';
-      case 'archived': return 'Archivé';
-      default: return 'Brouillon';
+      case 'active': return t('dash.proj.status.active');
+      case 'completed': return t('dash.proj.status.completed');
+      case 'archived': return t('dash.proj.status.archived');
+      default: return t('dash.proj.status.draft');
     }
   };
 
@@ -243,10 +246,10 @@ export default function ProjectDetailPage() {
     return (
       <div className="text-center py-12">
         <AlertCircle className="w-12 h-12 text-red-400/40 mx-auto mb-4" />
-        <p className="text-white/60">Accès non autorisé</p>
-        <p className="text-white/40 text-sm mt-1">Vous n'avez pas la permission de voir ce projet.</p>
+        <p className="text-white/60">{t('dash.projDetail.unauthorized')}</p>
+        <p className="text-white/40 text-sm mt-1">{t('dash.projDetail.unauthorizedDesc')}</p>
         <Link href="/dashboard/projets" className="text-white/40 hover:text-white/60 text-sm mt-4 inline-block">
-          Retour aux projets
+          {t('dash.projDetail.backToProjects')}
         </Link>
       </div>
     );
@@ -256,9 +259,9 @@ export default function ProjectDetailPage() {
     return (
       <div className="text-center py-12">
         <AlertCircle className="w-12 h-12 text-white/20 mx-auto mb-4" />
-        <p className="text-white/60">Projet non trouvé</p>
+        <p className="text-white/60">{t('dash.projDetail.notFound')}</p>
         <Link href="/dashboard/projets" className="text-white/40 hover:text-white/60 text-sm mt-2 inline-block">
-          Retour aux projets
+          {t('dash.projDetail.backToProjects')}
         </Link>
       </div>
     );
@@ -273,7 +276,7 @@ export default function ProjectDetailPage() {
             <ArrowLeft className="w-5 h-5 text-white/60" />
           </Link>
           <div>
-            <p className="text-white/40 text-xs uppercase tracking-wider">Projet</p>
+            <p className="text-white/40 text-xs uppercase tracking-wider">{t('dash.projDetail.label')}</p>
             <h1 className="text-xl font-light text-white/90">{project.title}</h1>
           </div>
         </div>
@@ -305,7 +308,7 @@ export default function ProjectDetailPage() {
       {tasks.length > 0 && (
         <div className="border border-white/10 p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-white/40 text-xs uppercase tracking-wider">Progression</span>
+            <span className="text-white/40 text-xs uppercase tracking-wider">{t('dash.projDetail.progress')}</span>
             <span className="text-white/60 text-sm">{progress}%</span>
           </div>
           <div className="h-2 bg-white/5 w-full">
@@ -314,7 +317,7 @@ export default function ProjectDetailPage() {
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-white/40 text-xs mt-2">{completedTasks} / {tasks.length} tâches complétées</p>
+          <p className="text-white/40 text-xs mt-2">{completedTasks} / {tasks.length} {t('dash.projDetail.tasksCompleted')}</p>
         </div>
       )}
 
@@ -323,16 +326,16 @@ export default function ProjectDetailPage() {
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Calendar className="w-4 h-4 text-white/40" />
-            <span className="text-white/40 text-xs">Créé le</span>
+            <span className="text-white/40 text-xs">{t('dash.projDetail.createdAt')}</span>
           </div>
-          <p className="text-white/80 text-sm">{format(new Date(project.created_at), 'dd MMM yyyy', { locale: fr })}</p>
+          <p className="text-white/80 text-sm">{format(new Date(project.created_at), 'dd MMM yyyy', { locale: dateFnsLocale })}</p>
         </div>
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-white/40" />
-            <span className="text-white/40 text-xs">Mis à jour</span>
+            <span className="text-white/40 text-xs">{t('dash.projDetail.updatedAt')}</span>
           </div>
-          <p className="text-white/80 text-sm">{format(new Date(project.updated_at), 'dd MMM yyyy', { locale: fr })}</p>
+          <p className="text-white/80 text-sm">{format(new Date(project.updated_at), 'dd MMM yyyy', { locale: dateFnsLocale })}</p>
         </div>
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -340,7 +343,7 @@ export default function ProjectDetailPage() {
             <span className="text-white/40 text-xs">Deadline</span>
           </div>
           <p className="text-white/80 text-sm">
-            {project.deadline ? format(new Date(project.deadline), 'dd MMM yyyy', { locale: fr }) : '—'}
+            {project.deadline ? format(new Date(project.deadline), 'dd MMM yyyy', { locale: dateFnsLocale }) : '—'}
           </p>
         </div>
         <div className="border border-white/10 p-4">
@@ -358,9 +361,9 @@ export default function ProjectDetailPage() {
 
       {/* Description */}
       <div className="border border-white/10 p-6">
-        <p className="text-white/40 text-xs uppercase tracking-wider mb-4">Description</p>
+        <p className="text-white/40 text-xs uppercase tracking-wider mb-4">{t('dash.projDetail.description')}</p>
         <p className="text-white/70 text-sm leading-relaxed">
-          {project.description || 'Aucune description'}
+          {project.description || t('dash.projDetail.noDescription')}
         </p>
       </div>
 
@@ -369,26 +372,26 @@ export default function ProjectDetailPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <ListTodo className="w-4 h-4 text-white/40" />
-            <p className="text-white/40 text-xs uppercase tracking-wider">Tâches</p>
+            <p className="text-white/40 text-xs uppercase tracking-wider">{t('dash.projDetail.tasks')}</p>
           </div>
           <button
             onClick={() => setShowAddTask(true)}
             className="flex items-center gap-1 text-xs text-white/60 hover:text-white/80 transition-colors"
           >
             <Plus className="w-3 h-3" />
-            Ajouter
+            {t('dash.projDetail.add')}
           </button>
         </div>
 
         {tasks.length === 0 ? (
           <div className="text-center py-8">
             <Circle className="w-8 h-8 text-white/10 mx-auto mb-2" />
-            <p className="text-white/40 text-sm">Aucune tâche</p>
+            <p className="text-white/40 text-sm">{t('dash.projDetail.noTask')}</p>
             <button
               onClick={() => setShowAddTask(true)}
               className="text-white/60 text-xs hover:text-white/80 mt-2"
             >
-              Ajouter une tâche
+              {t('dash.projDetail.addTask')}
             </button>
           </div>
         ) : (
@@ -430,7 +433,7 @@ export default function ProjectDetailPage() {
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addTask()}
-              placeholder="Nouvelle tâche..."
+              placeholder={t('dash.projDetail.newTaskPlaceholder')}
               className="flex-1 bg-white/5 border border-white/10 px-3 py-2 text-sm text-white/80 focus:outline-none focus:border-white/20"
               autoFocus
             />
@@ -438,7 +441,7 @@ export default function ProjectDetailPage() {
               onClick={addTask}
               className="px-4 py-2 bg-white/10 text-white/80 text-sm hover:bg-white/15 transition-colors"
             >
-              Ajouter
+              {t('dash.projDetail.add')}
             </button>
             <button
               onClick={() => { setShowAddTask(false); setNewTaskTitle(''); }}
@@ -452,7 +455,7 @@ export default function ProjectDetailPage() {
 
       {/* Actions */}
       <div className="border border-white/10 p-6">
-        <p className="text-white/40 text-xs uppercase tracking-wider mb-4">Changer le statut</p>
+        <p className="text-white/40 text-xs uppercase tracking-wider mb-4">{t('dash.projDetail.changeStatus')}</p>
         <div className="flex flex-wrap gap-2">
           {project.status !== 'active' && (
             <button
@@ -460,7 +463,7 @@ export default function ProjectDetailPage() {
               className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 text-green-400 text-sm hover:bg-green-500/20 transition-colors"
             >
               <Target className="w-4 h-4" />
-              Actif
+              {t('dash.proj.status.active')}
             </button>
           )}
           {project.status !== 'completed' && (
@@ -469,7 +472,7 @@ export default function ProjectDetailPage() {
               className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm hover:bg-blue-500/20 transition-colors"
             >
               <CheckCircle className="w-4 h-4" />
-              Terminé
+              {t('dash.proj.status.completed')}
             </button>
           )}
           {project.status !== 'archived' && (
@@ -478,7 +481,7 @@ export default function ProjectDetailPage() {
               className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white/60 text-sm hover:bg-white/10 transition-colors"
             >
               <Archive className="w-4 h-4" />
-              Archiver
+              {t('dash.proj.archive')}
             </button>
           )}
         </div>
@@ -489,14 +492,14 @@ export default function ProjectDetailPage() {
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[#0a0a0a] border border-white/10 w-full max-w-lg">
             <div className="p-4 border-b border-white/10 flex items-center justify-between">
-              <h2 className="text-white/90 font-medium">Modifier le projet</h2>
+              <h2 className="text-white/90 font-medium">{t('dash.projDetail.editProject')}</h2>
               <button onClick={() => setIsEditing(false)} className="p-1 hover:bg-white/5">
                 <X className="w-4 h-4 text-white/40" />
               </button>
             </div>
             <div className="p-4 space-y-4">
               <div>
-                <label className="block text-white/40 text-xs mb-2">Titre</label>
+                <label className="block text-white/40 text-xs mb-2">{t('dash.projDetail.titleLabel')}</label>
                 <input
                   type="text"
                   value={editForm.title}
@@ -505,7 +508,7 @@ export default function ProjectDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-white/40 text-xs mb-2">Description</label>
+                <label className="block text-white/40 text-xs mb-2">{t('dash.projDetail.description')}</label>
                 <textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
@@ -514,7 +517,7 @@ export default function ProjectDetailPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-white/40 text-xs mb-2">Budget min (€)</label>
+                  <label className="block text-white/40 text-xs mb-2">{t('dash.projDetail.budgetMin')}</label>
                   <input
                     type="number"
                     value={editForm.budget_min}
@@ -524,7 +527,7 @@ export default function ProjectDetailPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-white/40 text-xs mb-2">Budget max (€)</label>
+                  <label className="block text-white/40 text-xs mb-2">{t('dash.projDetail.budgetMax')}</label>
                   <input
                     type="number"
                     value={editForm.budget_max}
@@ -545,15 +548,15 @@ export default function ProjectDetailPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-white/40 text-xs mb-2">Priorité</label>
+                  <label className="block text-white/40 text-xs mb-2">{t('dash.projDetail.priorityLabel')}</label>
                   <select
                     value={editForm.priority}
                     onChange={(e) => setEditForm({ ...editForm, priority: e.target.value })}
                     className="w-full bg-white/5 border border-white/10 px-3 py-2 text-white/90 text-sm focus:outline-none focus:border-white/20"
                   >
-                    <option value="low" className="bg-black">Basse</option>
-                    <option value="medium" className="bg-black">Moyenne</option>
-                    <option value="high" className="bg-black">Haute</option>
+                    <option value="low" className="bg-black">{t('dash.projDetail.priority.low')}</option>
+                    <option value="medium" className="bg-black">{t('dash.projDetail.priority.medium')}</option>
+                    <option value="high" className="bg-black">{t('dash.projDetail.priority.high')}</option>
                   </select>
                 </div>
               </div>
@@ -573,13 +576,13 @@ export default function ProjectDetailPage() {
                 }}
                 className="px-4 py-2 text-sm text-white/60 hover:text-white/80 transition-colors"
               >
-                Annuler
+                {t('dash.proj.cancel')}
               </button>
               <button
                 onClick={updateProject}
                 className="px-4 py-2 bg-white text-black text-sm hover:bg-white/90 transition-colors"
               >
-                Enregistrer
+                {t('dash.projDetail.save')}
               </button>
             </div>
           </div>

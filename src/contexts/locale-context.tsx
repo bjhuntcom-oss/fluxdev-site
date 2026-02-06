@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { dashboardTranslations } from "@/lib/i18n/dashboard";
 
 type Locale = "fr" | "en";
 
@@ -264,7 +265,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   };
 
   const t = (key: string): string => {
-    return translations[locale][key] || key;
+    return translations[locale][key] || dashboardTranslations[locale][key] || key;
   };
 
   return (

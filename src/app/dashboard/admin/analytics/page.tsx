@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { format, subDays } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
+import { useLocale } from "@/contexts";
 
 interface AnalyticsData {
   totalPageViews: number;
@@ -28,6 +29,8 @@ interface AnalyticsData {
 }
 
 export default function AnalyticsPage() {
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [data, setData] = useState<AnalyticsData>({
     totalPageViews: 0,
     uniqueVisitors: 0,
@@ -127,26 +130,26 @@ export default function AnalyticsPage() {
 
   const statCards = [
     {
-      title: "Pages vues",
+      title: t("dash.analytics.pageViews"),
       value: data.totalPageViews,
       icon: <Eye className="w-6 h-6" />,
       color: "from-blue-500/20 to-blue-600/20",
     },
     {
-      title: "Visiteurs uniques",
+      title: t("dash.analytics.uniqueVisitors"),
       value: data.uniqueVisitors,
       icon: <Users className="w-6 h-6" />,
       color: "from-purple-500/20 to-purple-600/20",
     },
     {
-      title: "Durée moyenne",
+      title: t("dash.analytics.avgDuration"),
       value: `${Math.floor(data.avgSessionDuration / 60)}min`,
       icon: <Clock className="w-6 h-6" />,
       color: "from-emerald-500/20 to-emerald-600/20",
     },
     {
-      title: "Période",
-      value: `${dateRange}j`,
+      title: t("dash.analytics.period"),
+      value: locale === 'fr' ? `${dateRange}j` : `${dateRange}d`,
       icon: <Calendar className="w-6 h-6" />,
       color: "from-amber-500/20 to-amber-600/20",
     },
@@ -165,8 +168,8 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-light text-white">Analytics</h1>
-          <p className="text-white/50">Statistiques et comportements utilisateurs</p>
+          <h1 className="text-2xl font-light text-white">{t("dash.analytics.title")}</h1>
+          <p className="text-white/50">{t("dash.analytics.subtitle")}</p>
         </div>
 
         <select
@@ -174,9 +177,9 @@ export default function AnalyticsPage() {
           onChange={(e) => setDateRange(Number(e.target.value))}
           className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-white/20"
         >
-          <option value={7} className="bg-black">7 derniers jours</option>
-          <option value={30} className="bg-black">30 derniers jours</option>
-          <option value={90} className="bg-black">90 derniers jours</option>
+          <option value={7} className="bg-black">{t("dash.analytics.days7")}</option>
+          <option value={30} className="bg-black">{t("dash.analytics.days30")}</option>
+          <option value={90} className="bg-black">{t("dash.analytics.days90")}</option>
         </select>
       </div>
 
@@ -208,10 +211,10 @@ export default function AnalyticsPage() {
           transition={{ delay: 0.4 }}
           className="p-6 rounded-xl border border-white/10 bg-white/[0.02]"
         >
-          <h2 className="text-lg font-medium text-white mb-6">Pages les plus visitées</h2>
+          <h2 className="text-lg font-medium text-white mb-6">{t("dash.analytics.topPages")}</h2>
 
           {data.topPages.length === 0 ? (
-            <p className="text-white/40 text-center py-8">Aucune donnée</p>
+            <p className="text-white/40 text-center py-8">{t("dash.analytics.noData")}</p>
           ) : (
             <div className="space-y-3">
               {data.topPages.map((page, index) => (
@@ -242,10 +245,10 @@ export default function AnalyticsPage() {
           transition={{ delay: 0.5 }}
           className="p-6 rounded-xl border border-white/10 bg-white/[0.02]"
         >
-          <h2 className="text-lg font-medium text-white mb-6">Appareils</h2>
+          <h2 className="text-lg font-medium text-white mb-6">{t("dash.analytics.devices")}</h2>
 
           {data.deviceBreakdown.length === 0 ? (
-            <p className="text-white/40 text-center py-8">Aucune donnée</p>
+            <p className="text-white/40 text-center py-8">{t("dash.analytics.noData")}</p>
           ) : (
             <div className="space-y-4">
               {data.deviceBreakdown.map((item) => (
@@ -260,7 +263,7 @@ export default function AnalyticsPage() {
                   <div className="flex-1">
                     <p className="text-white font-medium capitalize">{item.device || "Unknown"}</p>
                   </div>
-                  <span className="text-white/50">{item.count} sessions</span>
+                  <span className="text-white/50">{item.count} {t("dash.analytics.sessions")}</span>
                 </div>
               ))}
             </div>
@@ -274,10 +277,10 @@ export default function AnalyticsPage() {
           transition={{ delay: 0.6 }}
           className="p-6 rounded-xl border border-white/10 bg-white/[0.02] lg:col-span-2"
         >
-          <h2 className="text-lg font-medium text-white mb-6">Pays</h2>
+          <h2 className="text-lg font-medium text-white mb-6">{t("dash.analytics.countries")}</h2>
 
           {data.countryBreakdown.length === 0 ? (
-            <p className="text-white/40 text-center py-8">Aucune donnée</p>
+            <p className="text-white/40 text-center py-8">{t("dash.analytics.noData")}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {data.countryBreakdown.map((item) => (
@@ -285,7 +288,7 @@ export default function AnalyticsPage() {
                   <Globe className="w-5 h-5 text-white/40" />
                   <div>
                     <p className="text-white font-medium">{item.country}</p>
-                    <p className="text-white/40 text-sm">{item.count} visites</p>
+                    <p className="text-white/40 text-sm">{item.count} {t("dash.analytics.visits")}</p>
                   </div>
                 </div>
               ))}

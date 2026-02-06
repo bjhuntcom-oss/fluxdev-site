@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { Code, Database, Server, Terminal, Activity, Clock } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
+import { useLocale } from "@/contexts";
 
 interface SystemStats {
   totalTables: number;
@@ -14,6 +15,8 @@ interface SystemStats {
 }
 
 export default function DevDashboard() {
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [stats, setStats] = useState<SystemStats>({
     totalTables: 0,
     totalMigrations: 0,
@@ -58,22 +61,22 @@ export default function DevDashboard() {
 
   const devTools = [
     {
-      title: "Base de données",
-      description: "Schéma et tables Supabase",
+      title: t("dash.dev.db"),
+      description: t("dash.dev.dbDesc"),
       icon: <Database className="w-6 h-6" />,
       href: "https://supabase.com/dashboard/project/ivfiyrrljzjpqjphupkx",
       external: true,
     },
     {
-      title: "Clerk Dashboard",
-      description: "Gestion authentification",
+      title: t("dash.dev.clerk"),
+      description: t("dash.dev.clerkDesc"),
       icon: <Server className="w-6 h-6" />,
       href: "https://dashboard.clerk.com",
       external: true,
     },
     {
-      title: "API Logs",
-      description: "Logs des requêtes API",
+      title: t("dash.dev.apiLogs"),
+      description: t("dash.dev.apiLogsDesc"),
       icon: <Terminal className="w-6 h-6" />,
       href: "/dashboard/dev/api-logs",
       external: false,
@@ -82,17 +85,17 @@ export default function DevDashboard() {
 
   const statCards = [
     {
-      title: "Tables",
+      title: t("dash.dev.tables"),
       value: stats.totalTables,
       icon: <Database className="w-5 h-5" />,
     },
     {
-      title: "Migrations",
+      title: t("dash.dev.migrations"),
       value: stats.totalMigrations,
       icon: <Code className="w-5 h-5" />,
     },
     {
-      title: "Taille DB",
+      title: t("dash.dev.dbSize"),
       value: stats.dbSize,
       icon: <Server className="w-5 h-5" />,
     },
@@ -110,7 +113,7 @@ export default function DevDashboard() {
     <div className="space-y-8">
       <div className="border-b border-white/[0.06] pb-6">
         <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2">Panel</p>
-        <h1 className="text-xl font-light text-white">Dashboard Developpeur</h1>
+        <h1 className="text-xl font-light text-white">{t("dash.dev.title")}</h1>
       </div>
 
       {/* Stats */}
@@ -131,7 +134,7 @@ export default function DevDashboard() {
 
       {/* Dev Tools */}
       <div>
-        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-4">Outils</p>
+        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-4">{t("dash.dev.tools")}</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/[0.06]">
           {devTools.map((tool) => (
             <a
@@ -153,33 +156,33 @@ export default function DevDashboard() {
 
       {/* System Info */}
       <div className="border border-white/[0.06] p-6">
-        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-6">Systeme</p>
+        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-6">{t("dash.dev.system")}</p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/[0.06]">
           <div className="p-4 bg-[#0a0a0a]">
             <div className="flex items-center gap-2 mb-2">
               <Activity className="w-3 h-3 text-white/40" />
-              <span className="text-white/60 text-sm font-light">API Status</span>
+              <span className="text-white/60 text-sm font-light">{t("dash.dev.apiStatus")}</span>
             </div>
-            <p className="text-white/50 text-xs">Operationnel</p>
+            <p className="text-white/50 text-xs">{t("dash.dev.operational")}</p>
           </div>
 
           <div className="p-4 bg-[#0a0a0a]">
             <div className="flex items-center gap-2 mb-2">
               <Database className="w-3 h-3 text-white/40" />
-              <span className="text-white/60 text-sm font-light">Database Status</span>
+              <span className="text-white/60 text-sm font-light">{t("dash.dev.dbStatus")}</span>
             </div>
-            <p className="text-white/50 text-xs">Connecte</p>
+            <p className="text-white/50 text-xs">{t("dash.dev.connected")}</p>
           </div>
 
           <div className="p-4 bg-[#0a0a0a]">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="w-3 h-3 text-white/40" />
-              <span className="text-white/60 text-sm font-light">Derniere migration</span>
+              <span className="text-white/60 text-sm font-light">{t("dash.dev.lastMigration")}</span>
             </div>
             <p className="text-white/40 text-xs">
               {stats.lastMigration
-                ? format(new Date(stats.lastMigration), "dd MMM yyyy HH:mm", { locale: fr })
+                ? format(new Date(stats.lastMigration), "dd MMM yyyy HH:mm", { locale: dateFnsLocale })
                 : "N/A"}
             </p>
           </div>
@@ -187,9 +190,9 @@ export default function DevDashboard() {
           <div className="p-4 bg-[#0a0a0a]">
             <div className="flex items-center gap-2 mb-2">
               <Server className="w-3 h-3 text-white/40" />
-              <span className="text-white/60 text-sm font-light">Environment</span>
+              <span className="text-white/60 text-sm font-light">{t("dash.dev.environment")}</span>
             </div>
-            <p className="text-white/40 text-xs">Development</p>
+            <p className="text-white/40 text-xs">{t("dash.dev.development")}</p>
           </div>
         </div>
       </div>

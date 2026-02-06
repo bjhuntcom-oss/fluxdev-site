@@ -5,7 +5,8 @@ import { useUser } from '@clerk/nextjs';
 import { MessageSquare, Search, Clock, CheckCircle, AlertCircle, User } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS } from 'date-fns/locale';
+import { useLocale } from '@/contexts';
 import Link from 'next/link';
 
 interface Conversation {
@@ -25,6 +26,8 @@ interface Conversation {
 
 export default function StaffConversationsPage() {
   const { user: clerkUser } = useUser();
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -103,10 +106,10 @@ export default function StaffConversationsPage() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'open': return 'Ouverte';
-      case 'closed': return 'Fermee';
-      case 'pending': return 'En attente';
-      case 'archived': return 'Archivee';
+      case 'open': return t('dash.staffConv.status.open');
+      case 'closed': return t('dash.staffConv.status.closed');
+      case 'pending': return t('dash.staffConv.status.pending');
+      case 'archived': return t('dash.staffConv.status.archived');
       default: return status;
     }
   };
@@ -118,8 +121,8 @@ export default function StaffConversationsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-white/40 text-xs uppercase tracking-wider">Staff</p>
-          <h1 className="text-xl font-light text-white/90">Conversations</h1>
+          <p className="text-white/40 text-xs uppercase tracking-wider">{t("dash.staffConv.label")}</p>
+          <h1 className="text-xl font-light text-white/90">{t("dash.staffConv.title")}</h1>
         </div>
       </div>
 
@@ -127,21 +130,21 @@ export default function StaffConversationsPage() {
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <MessageSquare className="w-4 h-4 text-white/40" />
-            <span className="text-white/40 text-xs">Total</span>
+            <span className="text-white/40 text-xs">{t("dash.staffConv.total")}</span>
           </div>
           <p className="text-2xl font-light text-white/90">{conversations.length}</p>
         </div>
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <AlertCircle className="w-4 h-4 text-green-500/60" />
-            <span className="text-white/40 text-xs">Ouvertes</span>
+            <span className="text-white/40 text-xs">{t("dash.staffConv.open")}</span>
           </div>
           <p className="text-2xl font-light text-white/90">{openConversations.length}</p>
         </div>
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-yellow-500/60" />
-            <span className="text-white/40 text-xs">En attente</span>
+            <span className="text-white/40 text-xs">{t("dash.staffConv.pending")}</span>
           </div>
           <p className="text-2xl font-light text-white/90">{pendingConversations.length}</p>
         </div>
@@ -154,7 +157,7 @@ export default function StaffConversationsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher une conversation..."
+            placeholder={t("dash.staffConv.search")}
             className="w-full bg-white/5 border border-white/10 pl-10 pr-4 py-2 text-sm text-white/90 focus:outline-none focus:border-white/20"
           />
         </div>
@@ -163,11 +166,11 @@ export default function StaffConversationsPage() {
           onChange={(e) => setFilterStatus(e.target.value)}
           className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white/70 focus:outline-none"
         >
-          <option value="all">Toutes</option>
-          <option value="open">Ouvertes</option>
-          <option value="pending">En attente</option>
-          <option value="closed">Fermees</option>
-          <option value="archived">Archivees</option>
+          <option value="all">{t("dash.staffConv.filter.all")}</option>
+          <option value="open">{t("dash.staffConv.filter.open")}</option>
+          <option value="pending">{t("dash.staffConv.filter.pending")}</option>
+          <option value="closed">{t("dash.staffConv.filter.closed")}</option>
+          <option value="archived">{t("dash.staffConv.filter.archived")}</option>
         </select>
       </div>
 
@@ -175,12 +178,12 @@ export default function StaffConversationsPage() {
         {loading ? (
           <div className="p-8 text-center">
             <Clock className="w-6 h-6 text-white/30 animate-pulse mx-auto mb-2" />
-            <p className="text-white/40 text-sm">Chargement...</p>
+            <p className="text-white/40 text-sm">{t("dash.staffConv.loading")}</p>
           </div>
         ) : filteredConversations.length === 0 ? (
           <div className="p-8 text-center">
             <MessageSquare className="w-8 h-8 text-white/20 mx-auto mb-2" />
-            <p className="text-white/40 text-sm">Aucune conversation</p>
+            <p className="text-white/40 text-sm">{t("dash.staffConv.noConv")}</p>
           </div>
         ) : (
           <div className="divide-y divide-white/[0.04]">
@@ -200,10 +203,10 @@ export default function StaffConversationsPage() {
                       </div>
                       <div>
                         <p className="text-white/80 text-sm">
-                          {conv.subject || 'Sans sujet'}
+                          {conv.subject || t('dash.staffConv.noSubject')}
                         </p>
                         <p className="text-white/40 text-xs">
-                          {userInfo?.email || 'Utilisateur'}
+                          {userInfo?.email || t('dash.staffConv.user')}
                         </p>
                       </div>
                     </div>
@@ -213,7 +216,7 @@ export default function StaffConversationsPage() {
                     </div>
                   </div>
                   <div className="mt-2 text-white/30 text-xs">
-                    Derniere activite: {format(new Date(conv.updated_at), 'dd MMM yyyy HH:mm', { locale: fr })}
+                    {t("dash.staffConv.lastActivity")}: {format(new Date(conv.updated_at), 'dd MMM yyyy HH:mm', { locale: dateFnsLocale })}
                   </div>
                 </Link>
               );

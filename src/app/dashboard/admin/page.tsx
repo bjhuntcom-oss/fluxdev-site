@@ -13,7 +13,8 @@ import {
 import { supabase } from "@/lib/supabase/client";
 import Link from "next/link";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
+import { useLocale } from "@/contexts";
 
 interface Stats {
   totalUsers: number;
@@ -50,6 +51,8 @@ interface RecentActivity {
 }
 
 export default function AdminDashboard() {
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [stats, setStats] = useState<Stats>({
     totalUsers: 0,
     activeUsers: 0,
@@ -178,44 +181,44 @@ export default function AdminDashboard() {
 
   const statCards = [
     {
-      title: "Utilisateurs",
+      title: t("dash.admin.users"),
       value: stats.totalUsers,
-      subValue: `${stats.activeUsers} actifs`,
+      subValue: `${stats.activeUsers} ${t("dash.admin.active")}`,
       icon: <Users className="w-4 h-4" />,
-      extra: stats.pendingUsers > 0 ? `+${stats.pendingUsers} en attente` : null,
+      extra: stats.pendingUsers > 0 ? `+${stats.pendingUsers} ${t("dash.admin.pending")}` : null,
     },
     {
-      title: "Conversations",
+      title: t("dash.admin.conversations"),
       value: stats.totalConversations,
-      subValue: `${stats.openConversations} ouvertes`,
+      subValue: `${stats.openConversations} ${t("dash.admin.openConv")}`,
       icon: <MessageSquare className="w-4 h-4" />,
     },
     {
-      title: "Documents",
+      title: t("dash.admin.documents"),
       value: stats.totalDocuments,
-      subValue: "fichiers uploades",
+      subValue: `${stats.totalDocuments} ${t("dash.admin.filesUploaded")}`,
       icon: <FileText className="w-4 h-4" />,
     },
     {
-      title: "Projets",
+      title: t("dash.admin.projects"),
       value: stats.totalProjects,
-      subValue: "projets crees",
+      subValue: `${stats.totalProjects} ${t("dash.admin.projectsCreated")}`,
       icon: <FolderKanban className="w-4 h-4" />,
     },
     {
-      title: "Connexions",
+      title: t("dash.admin.connections"),
       value: stats.todayLogins,
-      subValue: "aujourd hui",
+      subValue: t("dash.admin.today"),
       icon: <Activity className="w-4 h-4" />,
     },
   ];
 
   const getStatusBadge = (status: string) => {
     const labels: Record<string, string> = {
-      active: "Actif",
-      pending: "En attente",
-      suspended: "Suspendu",
-      banned: "Banni",
+      active: t("dash.admin.status.active"),
+      pending: t("dash.admin.status.pending"),
+      suspended: t("dash.admin.status.suspended"),
+      banned: t("dash.admin.status.banned"),
     };
     return (
       <span className="text-[10px] text-white/40 uppercase tracking-wider">
@@ -236,8 +239,8 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       {/* Header */}
       <div className="border-b border-white/10 pb-6">
-        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2">Panel</p>
-        <h1 className="text-xl font-light text-white">Administration</h1>
+        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2">{t("dash.admin.system")}</p>
+        <h1 className="text-xl font-light text-white">{t("dash.admin.title")}</h1>
       </div>
 
       {/* Stats Grid */}
@@ -268,18 +271,18 @@ export default function AdminDashboard() {
         {/* Recent Users */}
         <div className="p-6 bg-[#0a0a0a]">
           <div className="flex items-center justify-between mb-6">
-            <p className="text-[10px] text-white/40 uppercase tracking-widest">Nouveaux utilisateurs</p>
+            <p className="text-[10px] text-white/40 uppercase tracking-widest">{t("dash.admin.newUsers")}</p>
             <Link
               href="/dashboard/admin/users"
               className="text-xs text-white/40 hover:text-white/70 transition-colors flex items-center gap-1"
             >
-              Voir tout <ArrowRight className="w-3 h-3" />
+              {t("dash.admin.viewAll")} <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
           <div className="space-y-px">
             {recentUsers.length === 0 ? (
-              <p className="text-white/40 text-center py-4 text-sm">Aucun utilisateur</p>
+              <p className="text-white/40 text-sm">{t("dash.admin.noUser")}</p>
             ) : (
               recentUsers.map((user, index) => (
                 <div
@@ -300,7 +303,7 @@ export default function AdminDashboard() {
                   <div className="text-right">
                     {getStatusBadge(user.status)}
                     <p className="text-white/20 text-[10px] mt-1">
-                      {format(new Date(user.created_at), "dd MMM", { locale: fr })}
+                      {format(new Date(user.created_at), 'dd MMM yyyy', { locale: dateFnsLocale })}
                     </p>
                   </div>
                 </div>
@@ -312,18 +315,18 @@ export default function AdminDashboard() {
         {/* Recent Activity */}
         <div className="p-6 bg-[#0a0a0a]">
           <div className="flex items-center justify-between mb-6">
-            <p className="text-[10px] text-white/40 uppercase tracking-widest">Activite recente</p>
+            <p className="text-[10px] text-white/40 uppercase tracking-widest">{t("dash.admin.recentActivity")}</p>
             <Link
               href="/dashboard/admin/logs"
               className="text-xs text-white/40 hover:text-white/70 transition-colors flex items-center gap-1"
             >
-              Voir tout <ArrowRight className="w-3 h-3" />
+              {t("dash.admin.viewAll")} <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
           <div className="space-y-px">
             {recentActivity.length === 0 ? (
-              <p className="text-white/40 text-center py-4 text-sm">Aucune activite</p>
+              <p className="text-white/40 text-sm">{t("dash.admin.noActivity")}</p>
             ) : (
               recentActivity.map((activity, index) => {
                 const userData = Array.isArray(activity.user) ? activity.user[0] : activity.user;
@@ -341,7 +344,7 @@ export default function AdminDashboard() {
                         {activity.action}
                       </p>
                       <p className="text-white/30 text-xs">
-                        {activity.entity_type} - {format(new Date(activity.created_at), "HH:mm", { locale: fr })}
+                        {activity.entity_type} - {format(new Date(activity.created_at), 'HH:mm', { locale: dateFnsLocale })}
                       </p>
                     </div>
                   </div>
@@ -361,8 +364,10 @@ export default function AdminDashboard() {
           className="p-6 bg-[#0a0a0a] hover:bg-white/[0.02] transition-colors group"
         >
           <Users className="w-4 h-4 text-white/40 mb-4 group-hover:text-white/60 transition-colors" />
-          <h3 className="text-white/70 text-sm font-light mb-1">Gerer les utilisateurs</h3>
-          <p className="text-white/30 text-xs">Validation, roles et permissions</p>
+          <h2 className="text-white/70 text-sm font-light">{t("dash.admin.newUsers")}</h2>
+          <Link href="/dashboard/admin/users" className="text-white/40 text-xs hover:text-white/70 transition-colors">
+            {t("dash.admin.viewAll")} →
+          </Link>
         </Link>
 
         <Link
@@ -370,8 +375,8 @@ export default function AdminDashboard() {
           className="p-6 bg-[#0a0a0a] hover:bg-white/[0.02] transition-colors group"
         >
           <Activity className="w-4 h-4 text-white/40 mb-4 group-hover:text-white/60 transition-colors" />
-          <h3 className="text-white/70 text-sm font-light mb-1">Analytics</h3>
-          <p className="text-white/30 text-xs">Statistiques et comportements</p>
+          <h3 className="text-white/70 text-sm font-light mb-1">{t("dash.admin.analyticsTitle")}</h3>
+          <p className="text-white/30 text-xs">{t("dash.admin.analyticsDesc")}</p>
         </Link>
 
         <Link
@@ -379,8 +384,8 @@ export default function AdminDashboard() {
           className="p-6 bg-[#0a0a0a] hover:bg-white/[0.02] transition-colors group"
         >
           <Eye className="w-4 h-4 text-white/40 mb-4 group-hover:text-white/60 transition-colors" />
-          <h3 className="text-white/70 text-sm font-light mb-1">Audit Logs</h3>
-          <p className="text-white/30 text-xs">Historique des actions</p>
+          <h2 className="text-white/70 text-sm font-light">{t("dash.admin.recentActivity")}</h2>
+          <p className="text-white/30 text-xs">{t("dash.admin.recentActivityDesc")}</p>
         </Link>
         </div>
       </div>

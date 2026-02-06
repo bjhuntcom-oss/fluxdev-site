@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { Activity, Clock, AlertCircle, CheckCircle, XCircle, Filter, RefreshCw } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS } from 'date-fns/locale';
+import { useLocale } from '@/contexts';
 
 interface ApiLog {
   id: string;
@@ -22,6 +23,8 @@ interface ApiLog {
 }
 
 export default function ApiLogsPage() {
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [logs, setLogs] = useState<ApiLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'success' | 'error'>('all');
@@ -95,8 +98,8 @@ export default function ApiLogsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-white/40 text-xs uppercase tracking-wider">Developpeur</p>
-          <h1 className="text-xl font-light text-white/90">API Logs</h1>
+          <p className="text-white/40 text-xs uppercase tracking-wider">{t("dash.apiLogs.label")}</p>
+          <h1 className="text-xl font-light text-white/90">{t("dash.apiLogs.title")}</h1>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex border border-white/10">
@@ -110,7 +113,7 @@ export default function ApiLogsPage() {
                     : 'text-white/40 hover:text-white/60'
                 }`}
               >
-                {f === 'all' ? 'Tous' : f === 'success' ? 'Succes' : 'Erreurs'}
+                {f === 'all' ? t('dash.apiLogs.filter.all') : f === 'success' ? t('dash.apiLogs.filter.success') : t('dash.apiLogs.filter.error')}
               </button>
             ))}
           </div>
@@ -125,23 +128,23 @@ export default function ApiLogsPage() {
 
       <div className="border border-white/10">
         <div className="grid grid-cols-12 gap-4 p-3 border-b border-white/10 text-xs text-white/40 uppercase tracking-wider">
-          <div className="col-span-1">Status</div>
-          <div className="col-span-1">Method</div>
-          <div className="col-span-4">Endpoint</div>
-          <div className="col-span-2">User</div>
-          <div className="col-span-2">Temps</div>
-          <div className="col-span-2">Date</div>
+          <div className="col-span-1">{t("dash.apiLogs.col.status")}</div>
+          <div className="col-span-1">{t("dash.apiLogs.col.method")}</div>
+          <div className="col-span-4">{t("dash.apiLogs.col.endpoint")}</div>
+          <div className="col-span-2">{t("dash.apiLogs.col.user")}</div>
+          <div className="col-span-2">{t("dash.apiLogs.col.time")}</div>
+          <div className="col-span-2">{t("dash.apiLogs.col.date")}</div>
         </div>
 
         {loading ? (
           <div className="p-8 text-center">
             <RefreshCw className="w-6 h-6 text-white/30 animate-spin mx-auto mb-2" />
-            <p className="text-white/40 text-sm">Chargement...</p>
+            <p className="text-white/40 text-sm">{t("dash.apiLogs.loading")}</p>
           </div>
         ) : filteredLogs.length === 0 ? (
           <div className="p-8 text-center">
             <Activity className="w-8 h-8 text-white/20 mx-auto mb-2" />
-            <p className="text-white/40 text-sm">Aucun log</p>
+            <p className="text-white/40 text-sm">{t("dash.apiLogs.noLog")}</p>
           </div>
         ) : (
           <div className="divide-y divide-white/[0.04]">
@@ -162,13 +165,13 @@ export default function ApiLogsPage() {
                   {log.endpoint}
                 </div>
                 <div className="col-span-2 text-white/50 text-xs truncate">
-                  {log.user?.email || 'Systeme'}
+                  {log.user?.email || t('dash.apiLogs.system')}
                 </div>
                 <div className="col-span-2 text-white/40 text-xs">
                   {log.response_time}ms
                 </div>
                 <div className="col-span-2 text-white/30 text-xs">
-                  {format(new Date(log.created_at), 'dd/MM HH:mm:ss', { locale: fr })}
+                  {format(new Date(log.created_at), 'dd/MM HH:mm:ss', { locale: dateFnsLocale })}
                 </div>
               </div>
             ))}
@@ -180,14 +183,14 @@ export default function ApiLogsPage() {
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Activity className="w-4 h-4 text-white/40" />
-            <span className="text-white/40 text-xs">Total Requetes</span>
+            <span className="text-white/40 text-xs">{t("dash.apiLogs.totalRequests")}</span>
           </div>
           <p className="text-2xl font-light text-white/90">{logs.length}</p>
         </div>
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="w-4 h-4 text-green-500/60" />
-            <span className="text-white/40 text-xs">Succes</span>
+            <span className="text-white/40 text-xs">{t("dash.apiLogs.success")}</span>
           </div>
           <p className="text-2xl font-light text-white/90">
             {logs.filter(l => l.status_code < 400).length}
@@ -196,7 +199,7 @@ export default function ApiLogsPage() {
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <XCircle className="w-4 h-4 text-red-500/60" />
-            <span className="text-white/40 text-xs">Erreurs</span>
+            <span className="text-white/40 text-xs">{t("dash.apiLogs.errors")}</span>
           </div>
           <p className="text-2xl font-light text-white/90">
             {logs.filter(l => l.status_code >= 400).length}
@@ -205,7 +208,7 @@ export default function ApiLogsPage() {
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-white/40" />
-            <span className="text-white/40 text-xs">Temps moyen</span>
+            <span className="text-white/40 text-xs">{t("dash.apiLogs.avgTime")}</span>
           </div>
           <p className="text-2xl font-light text-white/90">
             {logs.length > 0 ? Math.round(logs.reduce((a, b) => a + b.response_time, 0) / logs.length) : 0}ms

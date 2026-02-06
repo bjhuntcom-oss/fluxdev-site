@@ -5,7 +5,8 @@ import { useUser } from '@clerk/nextjs';
 import { Folder, Plus, Calendar, Users, ExternalLink, MoreVertical, Clock, Trash2, Edit, Filter } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS } from 'date-fns/locale';
+import { useLocale } from '@/contexts';
 import Link from 'next/link';
 
 interface Project {
@@ -21,6 +22,8 @@ const ITEMS_PER_PAGE = 9;
 
 export default function ProjetsPage() {
   const { user } = useUser();
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -108,10 +111,10 @@ export default function ProjetsPage() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'active': return 'Actif';
-      case 'completed': return 'Termine';
-      case 'archived': return 'Archive';
-      default: return 'Brouillon';
+      case 'active': return t('dash.proj.status.active');
+      case 'completed': return t('dash.proj.status.completed');
+      case 'archived': return t('dash.proj.status.archived');
+      default: return t('dash.proj.status.draft');
     }
   };
 
@@ -130,7 +133,7 @@ export default function ProjetsPage() {
   };
 
   const deleteProject = async (projectId: string) => {
-    if (!confirm('Supprimer ce projet ?')) return;
+    if (!confirm(t('dash.proj.deleteConfirm'))) return;
     try {
       const { error } = await supabase.from('projects').delete().eq('id', projectId);
       if (error) throw error;
@@ -148,8 +151,8 @@ export default function ProjetsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-white/40 text-xs uppercase tracking-wider">Espace de travail</p>
-          <h1 className="text-xl font-light text-white/90">Projets</h1>
+          <p className="text-white/40 text-xs uppercase tracking-wider">{t("dash.proj.label")}</p>
+          <h1 className="text-xl font-light text-white/90">{t("dash.proj.title")}</h1>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
@@ -159,11 +162,11 @@ export default function ProjetsPage() {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white/70 focus:outline-none"
             >
-              <option value="all" className="bg-black">Tous</option>
-              <option value="draft" className="bg-black">Brouillon</option>
-              <option value="active" className="bg-black">Actif</option>
-              <option value="completed" className="bg-black">Termine</option>
-              <option value="archived" className="bg-black">Archive</option>
+              <option value="all" className="bg-black">{t("dash.proj.filter.all")}</option>
+              <option value="draft" className="bg-black">{t("dash.proj.status.draft")}</option>
+              <option value="active" className="bg-black">{t("dash.proj.status.active")}</option>
+              <option value="completed" className="bg-black">{t("dash.proj.status.completed")}</option>
+              <option value="archived" className="bg-black">{t("dash.proj.status.archived")}</option>
             </select>
           </div>
           <button
@@ -171,7 +174,7 @@ export default function ProjetsPage() {
             className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-sm text-white/70"
           >
             <Plus className="w-4 h-4" />
-            Nouveau projet
+            {t("dash.proj.new")}
           </button>
         </div>
       </div>
@@ -179,18 +182,18 @@ export default function ProjetsPage() {
       {loading ? (
         <div className="border border-white/10 p-12 text-center">
           <Clock className="w-8 h-8 text-white/20 mx-auto mb-3 animate-pulse" />
-          <p className="text-white/40">Chargement...</p>
+          <p className="text-white/40">{t("dash.common.loading")}</p>
         </div>
       ) : filteredProjects.length === 0 ? (
         <div className="border border-white/10 p-12 text-center">
           <Folder className="w-12 h-12 text-white/20 mx-auto mb-4" />
-          <p className="text-white/60 mb-2">{filterStatus === 'all' ? 'Aucun projet' : 'Aucun projet avec ce statut'}</p>
-          <p className="text-white/40 text-sm mb-4">Creez votre premier projet pour commencer</p>
+          <p className="text-white/60 mb-2">{filterStatus === 'all' ? t('dash.proj.noProject') : t('dash.proj.noProjectStatus')}</p>
+          <p className="text-white/40 text-sm mb-4">{t("dash.proj.noProjectDesc")}</p>
           <button
             onClick={() => setShowModal(true)}
             className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-sm text-white/70"
           >
-            Creer un projet
+            {t("dash.proj.create")}
           </button>
         </div>
       ) : (
@@ -231,7 +234,7 @@ export default function ProjetsPage() {
                           onClick={() => updateProjectStatus(project.id, 'active')}
                           className="w-full px-3 py-2 text-left text-xs text-white/60 hover:bg-white/5"
                         >
-                          Marquer Actif
+                          {t("dash.proj.markActive")}
                         </button>
                       )}
                       {project.status !== 'completed' && (
@@ -239,7 +242,7 @@ export default function ProjetsPage() {
                           onClick={() => updateProjectStatus(project.id, 'completed')}
                           className="w-full px-3 py-2 text-left text-xs text-white/60 hover:bg-white/5"
                         >
-                          Marquer Termine
+                          {t("dash.proj.markCompleted")}
                         </button>
                       )}
                       {project.status !== 'archived' && (
@@ -247,14 +250,14 @@ export default function ProjetsPage() {
                           onClick={() => updateProjectStatus(project.id, 'archived')}
                           className="w-full px-3 py-2 text-left text-xs text-white/60 hover:bg-white/5"
                         >
-                          Archiver
+                          {t("dash.proj.archive")}
                         </button>
                       )}
                       <button
                         onClick={() => deleteProject(project.id)}
                         className="w-full px-3 py-2 text-left text-xs text-red-400/70 hover:bg-white/5 border-t border-white/5"
                       >
-                        Supprimer
+                        {t("dash.proj.delete")}
                       </button>
                     </div>
                     </>
@@ -269,13 +272,13 @@ export default function ProjetsPage() {
               <div className="flex items-center justify-between text-xs text-white/30">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
-                  {format(new Date(project.created_at), 'dd MMM yyyy', { locale: fr })}
+                  {format(new Date(project.created_at), 'dd MMM yyyy', { locale: dateFnsLocale })}
                 </div>
                 <Link
                   href={`/dashboard/projets/${project.id}`}
                   className="flex items-center gap-1 text-white/40 hover:text-white/60 transition-colors"
                 >
-                  Ouvrir <ExternalLink className="w-3 h-3" />
+                  {t("dash.proj.open")} <ExternalLink className="w-3 h-3" />
                 </Link>
               </div>
             </div>
@@ -286,7 +289,7 @@ export default function ProjetsPage() {
         {filteredProjects.length > ITEMS_PER_PAGE && (
           <div className="flex items-center justify-between mt-6 text-sm">
             <span className="text-white/40">
-              {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredProjects.length)} sur {filteredProjects.length}
+              {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredProjects.length)} {locale === 'fr' ? 'sur' : 'of'} {filteredProjects.length}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -294,7 +297,7 @@ export default function ProjetsPage() {
                 disabled={currentPage === 1}
                 className="px-3 py-1 border border-white/10 text-white/60 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
-                Précédent
+                {t("dash.doc.previous")}
               </button>
               <span className="text-white/50 px-2">
                 {currentPage} / {Math.ceil(filteredProjects.length / ITEMS_PER_PAGE)}
@@ -304,7 +307,7 @@ export default function ProjetsPage() {
                 disabled={currentPage >= Math.ceil(filteredProjects.length / ITEMS_PER_PAGE)}
                 className="px-3 py-1 border border-white/10 text-white/60 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
-                Suivant
+                {t("dash.doc.next")}
               </button>
             </div>
           </div>
@@ -316,26 +319,26 @@ export default function ProjetsPage() {
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
           <div className="bg-[#0a0a0a] border border-white/10 w-full max-w-md">
             <div className="p-4 border-b border-white/10">
-              <h2 className="text-white/90 font-medium">Nouveau projet</h2>
+              <h2 className="text-white/90 font-medium">{t("dash.proj.new")}</h2>
             </div>
             <div className="p-4 space-y-4">
               <div>
-                <label className="block text-white/40 text-xs mb-2">Nom du projet</label>
+                <label className="block text-white/40 text-xs mb-2">{t("dash.proj.name")}</label>
                 <input
                   type="text"
                   value={newProject.name}
                   onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 px-3 py-2 text-white/90 text-sm focus:outline-none focus:border-white/20"
-                  placeholder="Mon projet"
+                  placeholder={t("dash.proj.namePlaceholder")}
                 />
               </div>
               <div>
-                <label className="block text-white/40 text-xs mb-2">Description</label>
+                <label className="block text-white/40 text-xs mb-2">{t("dash.proj.description")}</label>
                 <textarea
                   value={newProject.description}
                   onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 px-3 py-2 text-white/90 text-sm focus:outline-none focus:border-white/20 resize-none h-24"
-                  placeholder="Description du projet..."
+                  placeholder={t("dash.proj.descPlaceholder")}
                 />
               </div>
             </div>
@@ -344,13 +347,13 @@ export default function ProjetsPage() {
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 text-sm text-white/60 hover:text-white/80 transition-colors"
               >
-                Annuler
+                {t("dash.proj.cancel")}
               </button>
               <button
                 onClick={createProject}
                 className="px-4 py-2 bg-white/10 text-sm text-white/90 hover:bg-white/15 transition-colors"
               >
-                Creer
+                {t("dash.proj.create")}
               </button>
             </div>
           </div>

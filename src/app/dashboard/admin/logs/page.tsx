@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { Activity, User, Calendar, Filter, RefreshCw, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS } from 'date-fns/locale';
+import { useLocale } from '@/contexts';
 
 interface AuditLog {
   id: string;
@@ -23,6 +24,8 @@ interface AuditLog {
 }
 
 export default function AdminLogsPage() {
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,8 +81,8 @@ export default function AdminLogsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-white/40 text-xs uppercase tracking-wider">Administration</p>
-          <h1 className="text-xl font-light text-white/90">Audit Logs</h1>
+          <p className="text-white/40 text-xs uppercase tracking-wider">{t("dash.logs.label")}</p>
+          <h1 className="text-xl font-light text-white/90">{t("dash.logs.title")}</h1>
         </div>
         <button
           onClick={loadLogs}
@@ -96,7 +99,7 @@ export default function AdminLogsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher..."
+            placeholder={t("dash.logs.search")}
             className="w-full bg-white/5 border border-white/10 pl-10 pr-4 py-2 text-sm text-white/90 focus:outline-none focus:border-white/20"
           />
         </div>
@@ -107,7 +110,7 @@ export default function AdminLogsPage() {
             onChange={(e) => setFilterType(e.target.value)}
             className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white/70 focus:outline-none"
           >
-            <option value="all">Tous les types</option>
+            <option value="all">{t("dash.logs.allTypes")}</option>
             {entityTypes.map(type => (
               <option key={type} value={type}>{type}</option>
             ))}
@@ -117,22 +120,22 @@ export default function AdminLogsPage() {
 
       <div className="border border-white/10">
         <div className="grid grid-cols-12 gap-4 p-3 border-b border-white/10 text-xs text-white/40 uppercase tracking-wider">
-          <div className="col-span-2">Date</div>
-          <div className="col-span-3">Utilisateur</div>
-          <div className="col-span-2">Action</div>
-          <div className="col-span-2">Type</div>
-          <div className="col-span-3">Details</div>
+          <div className="col-span-2">{t("dash.logs.col.date")}</div>
+          <div className="col-span-3">{t("dash.logs.col.user")}</div>
+          <div className="col-span-2">{t("dash.logs.col.action")}</div>
+          <div className="col-span-2">{t("dash.logs.col.type")}</div>
+          <div className="col-span-3">{t("dash.logs.col.details")}</div>
         </div>
 
         {loading ? (
           <div className="p-8 text-center">
             <RefreshCw className="w-6 h-6 text-white/30 animate-spin mx-auto mb-2" />
-            <p className="text-white/40 text-sm">Chargement...</p>
+            <p className="text-white/40 text-sm">{t("dash.logs.loading")}</p>
           </div>
         ) : filteredLogs.length === 0 ? (
           <div className="p-8 text-center">
             <Activity className="w-8 h-8 text-white/20 mx-auto mb-2" />
-            <p className="text-white/40 text-sm">Aucun log trouve</p>
+            <p className="text-white/40 text-sm">{t("dash.logs.noLog")}</p>
           </div>
         ) : (
           <div className="divide-y divide-white/[0.04] max-h-[600px] overflow-y-auto">
@@ -144,14 +147,14 @@ export default function AdminLogsPage() {
                   className="grid grid-cols-12 gap-4 p-3 text-sm hover:bg-white/[0.02] transition-colors"
                 >
                   <div className="col-span-2 text-white/40 text-xs">
-                    {format(new Date(log.created_at), 'dd/MM HH:mm:ss', { locale: fr })}
+                    {format(new Date(log.created_at), 'dd/MM HH:mm:ss', { locale: dateFnsLocale })}
                   </div>
                   <div className="col-span-3 flex items-center gap-2">
                     <div className="w-6 h-6 bg-white/10 flex items-center justify-center text-xs text-white/60">
                       {userData?.first_name?.[0] || 'S'}
                     </div>
                     <span className="text-white/60 text-xs truncate">
-                      {userData?.email || 'Systeme'}
+                      {userData?.email || t("dash.logs.system")}
                     </span>
                   </div>
                   <div className="col-span-2">
@@ -176,23 +179,23 @@ export default function AdminLogsPage() {
 
       <div className="grid grid-cols-4 gap-4">
         <div className="border border-white/10 p-4">
-          <p className="text-white/40 text-xs mb-1">Total logs</p>
+          <p className="text-white/40 text-xs mb-1">{t("dash.logs.totalLogs")}</p>
           <p className="text-2xl font-light text-white/90">{logs.length}</p>
         </div>
         <div className="border border-white/10 p-4">
-          <p className="text-white/40 text-xs mb-1">Creations</p>
+          <p className="text-white/40 text-xs mb-1">{t("dash.logs.creations")}</p>
           <p className="text-2xl font-light text-green-400">
             {logs.filter(l => l.action.includes('create')).length}
           </p>
         </div>
         <div className="border border-white/10 p-4">
-          <p className="text-white/40 text-xs mb-1">Modifications</p>
+          <p className="text-white/40 text-xs mb-1">{t("dash.logs.modifications")}</p>
           <p className="text-2xl font-light text-yellow-400">
             {logs.filter(l => l.action.includes('update')).length}
           </p>
         </div>
         <div className="border border-white/10 p-4">
-          <p className="text-white/40 text-xs mb-1">Suppressions</p>
+          <p className="text-white/40 text-xs mb-1">{t("dash.logs.deletions")}</p>
           <p className="text-2xl font-light text-red-400">
             {logs.filter(l => l.action.includes('delete')).length}
           </p>

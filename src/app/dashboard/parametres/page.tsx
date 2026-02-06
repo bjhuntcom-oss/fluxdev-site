@@ -4,6 +4,7 @@ import { useUser, useClerk } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { User, Bell, Shield, Save, Loader2, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
+import { useLocale } from "@/contexts";
 
 interface UserPreferences {
   notifications_email: boolean;
@@ -14,6 +15,7 @@ interface UserPreferences {
 export default function SettingsPage() {
   const { user } = useUser();
   const { openUserProfile } = useClerk();
+  const { t } = useLocale();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -93,15 +95,15 @@ export default function SettingsPage() {
   return (
     <div className="max-w-3xl space-y-8">
       <div className="border-b border-white/[0.06] pb-6">
-        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2">Configuration</p>
-        <h1 className="text-xl font-light text-white">Parametres</h1>
+        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2">{t("dash.settings.label")}</p>
+        <h1 className="text-xl font-light text-white">{t("dash.settings.title")}</h1>
       </div>
 
       {/* Profile Section */}
       <div className="border border-white/[0.06] p-6">
         <div className="flex items-center gap-3 mb-6">
           <User className="w-4 h-4 text-white/40" />
-          <p className="text-[10px] text-white/40 uppercase tracking-widest">Profil</p>
+          <p className="text-[10px] text-white/40 uppercase tracking-widest">{t("dash.settings.profile")}</p>
         </div>
 
         <div className="space-y-4">
@@ -119,7 +121,7 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
             <div>
-              <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Prenom</label>
+              <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">{t("dash.settings.firstName")}</label>
               <input
                 type="text"
                 value={firstName}
@@ -128,7 +130,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Nom</label>
+              <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">{t("dash.settings.lastName")}</label>
               <input
                 type="text"
                 value={lastName}
@@ -144,14 +146,14 @@ export default function SettingsPage() {
       <div className="border border-white/[0.06] p-6">
         <div className="flex items-center gap-3 mb-6">
           <Bell className="w-4 h-4 text-white/40" />
-          <p className="text-[10px] text-white/40 uppercase tracking-widest">Notifications</p>
+          <p className="text-[10px] text-white/40 uppercase tracking-widest">{t("dash.settings.notifications")}</p>
         </div>
 
         <div className="space-y-px">
           {[
-            { key: "email", label: "Notifications par email", description: "Recevez les notifications importantes par email" },
-            { key: "messages", label: "Nouveaux messages", description: "Soyez alerte des nouveaux messages de l equipe" },
-            { key: "updates", label: "Mises a jour projet", description: "Recevez les mises a jour sur vos projets" },
+            { key: "email", label: t("dash.settings.notif.email"), description: t("dash.settings.notif.emailDesc") },
+            { key: "messages", label: t("dash.settings.notif.messages"), description: t("dash.settings.notif.messagesDesc") },
+            { key: "updates", label: t("dash.settings.notif.projects"), description: t("dash.settings.notif.projectsDesc") },
           ].map((item, index) => (
             <div key={item.key} className={`flex items-center justify-between p-4 bg-white/[0.02] ${index !== 2 ? 'border-b border-white/[0.04]' : ''}`}>
               <div>
@@ -184,21 +186,21 @@ export default function SettingsPage() {
       <div className="border border-white/[0.06] p-6">
         <div className="flex items-center gap-3 mb-6">
           <Shield className="w-4 h-4 text-white/40" />
-          <p className="text-[10px] text-white/40 uppercase tracking-widest">Securite</p>
+          <p className="text-[10px] text-white/40 uppercase tracking-widest">{t("dash.settings.security") || "Security"}</p>
         </div>
 
         <div className="space-y-px">
           <div className="p-4 bg-white/[0.02] border-b border-white/[0.04]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/70 text-sm font-light">Gerer mon compte</p>
-                <p className="text-white/30 text-xs">Modifier votre profil, email et mot de passe</p>
+                <p className="text-white/70 text-sm font-light">{t("dash.settings.manageAccount") || "Manage account"}</p>
+                <p className="text-white/30 text-xs">{t("dash.settings.manageAccountDesc") || "Edit your profile, email and password"}</p>
               </div>
               <button 
                 onClick={() => openUserProfile()}
                 className="px-4 py-2 border border-white/[0.06] text-white/60 text-xs uppercase tracking-wider hover:bg-white/[0.02] transition-colors"
               >
-                Ouvrir
+                {t("dash.settings.open") || "Open"}
               </button>
             </div>
           </div>
@@ -210,7 +212,7 @@ export default function SettingsPage() {
         {saveSuccess && (
           <div className="flex items-center gap-2 text-white/60 text-sm">
             <Check className="w-4 h-4" />
-            Modifications enregistrees
+            {t("dash.settings.saveSuccess")}
           </div>
         )}
         <button
@@ -221,12 +223,12 @@ export default function SettingsPage() {
           {isSaving ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Enregistrement...
+              {t("dash.settings.saving")}
             </>
           ) : (
             <>
               <Save className="w-4 h-4" />
-              Enregistrer
+              {t("dash.settings.save")}
             </>
           )}
         </button>

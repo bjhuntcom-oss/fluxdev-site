@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase/client';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS } from 'date-fns/locale';
+import { useLocale } from '@/contexts';
 
 interface User {
   id: string;
@@ -24,6 +25,8 @@ interface User {
 export default function StaffUsersPage() {
   const { user: clerkUser } = useUser();
   const router = useRouter();
+  const { locale, t } = useLocale();
+  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [users, setUsers] = useState<User[]>([]);
   const [contacting, setContacting] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,10 +81,10 @@ export default function StaffUsersPage() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'active': return 'Actif';
-      case 'pending': return 'En attente';
-      case 'suspended': return 'Suspendu';
-      case 'banned': return 'Banni';
+      case 'active': return t('dash.staffUsers.status.active');
+      case 'pending': return t('dash.staffUsers.status.pending');
+      case 'suspended': return t('dash.staffUsers.status.suspended');
+      case 'banned': return t('dash.staffUsers.status.banned');
       default: return status;
     }
   };
@@ -145,8 +148,8 @@ export default function StaffUsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-white/40 text-xs uppercase tracking-wider">Staff</p>
-          <h1 className="text-xl font-light text-white/90">Gestion Utilisateurs</h1>
+          <p className="text-white/40 text-xs uppercase tracking-wider">{t("dash.staffUsers.label")}</p>
+          <h1 className="text-xl font-light text-white/90">{t("dash.staffUsers.title")}</h1>
         </div>
       </div>
 
@@ -154,21 +157,21 @@ export default function StaffUsersPage() {
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-4 h-4 text-white/40" />
-            <span className="text-white/40 text-xs">Total</span>
+            <span className="text-white/40 text-xs">{t("dash.staffUsers.total")}</span>
           </div>
           <p className="text-2xl font-light text-white/90">{users.length}</p>
         </div>
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="w-4 h-4 text-green-500/60" />
-            <span className="text-white/40 text-xs">Actifs</span>
+            <span className="text-white/40 text-xs">{t("dash.staffUsers.active")}</span>
           </div>
           <p className="text-2xl font-light text-white/90">{activeUsers.length}</p>
         </div>
         <div className="border border-white/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-yellow-500/60" />
-            <span className="text-white/40 text-xs">En attente</span>
+            <span className="text-white/40 text-xs">{t("dash.staffUsers.pending")}</span>
           </div>
           <p className="text-2xl font-light text-white/90">{pendingUsers.length}</p>
         </div>
@@ -181,7 +184,7 @@ export default function StaffUsersPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher un utilisateur..."
+            placeholder={t("dash.staffUsers.search")}
             className="w-full bg-white/5 border border-white/10 pl-10 pr-4 py-2 text-sm text-white/90 focus:outline-none focus:border-white/20"
           />
         </div>
@@ -192,33 +195,33 @@ export default function StaffUsersPage() {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="bg-[#1a1a1a] border border-white/10 px-3 py-2 text-sm text-white focus:outline-none"
           >
-            <option value="all" className="bg-[#1a1a1a] text-white">Tous</option>
-            <option value="active" className="bg-[#1a1a1a] text-white">Actifs</option>
-            <option value="pending" className="bg-[#1a1a1a] text-white">En attente</option>
-            <option value="suspended" className="bg-[#1a1a1a] text-white">Suspendus</option>
-            <option value="banned" className="bg-[#1a1a1a] text-white">Bannis</option>
+            <option value="all" className="bg-[#1a1a1a] text-white">{t("dash.staffUsers.filter.all")}</option>
+            <option value="active" className="bg-[#1a1a1a] text-white">{t("dash.staffUsers.filter.active")}</option>
+            <option value="pending" className="bg-[#1a1a1a] text-white">{t("dash.staffUsers.filter.pending")}</option>
+            <option value="suspended" className="bg-[#1a1a1a] text-white">{t("dash.staffUsers.filter.suspended")}</option>
+            <option value="banned" className="bg-[#1a1a1a] text-white">{t("dash.staffUsers.filter.banned")}</option>
           </select>
         </div>
       </div>
 
       <div className="border border-white/10">
         <div className="grid grid-cols-12 gap-4 p-3 border-b border-white/10 text-xs text-white/40 uppercase tracking-wider">
-          <div className="col-span-4">Utilisateur</div>
-          <div className="col-span-2">Role</div>
-          <div className="col-span-2">Status</div>
-          <div className="col-span-2">Inscription</div>
-          <div className="col-span-2">Actions</div>
+          <div className="col-span-4">{t("dash.staffUsers.col.user")}</div>
+          <div className="col-span-2">{t("dash.staffUsers.col.role")}</div>
+          <div className="col-span-2">{t("dash.staffUsers.col.status")}</div>
+          <div className="col-span-2">{t("dash.staffUsers.col.registered")}</div>
+          <div className="col-span-2">{t("dash.staffUsers.col.actions")}</div>
         </div>
 
         {loading ? (
           <div className="p-8 text-center">
             <Clock className="w-6 h-6 text-white/30 animate-pulse mx-auto mb-2" />
-            <p className="text-white/40 text-sm">Chargement...</p>
+            <p className="text-white/40 text-sm">{t("dash.staffUsers.loading")}</p>
           </div>
         ) : filteredUsers.length === 0 ? (
           <div className="p-8 text-center">
             <Users className="w-8 h-8 text-white/20 mx-auto mb-2" />
-            <p className="text-white/40 text-sm">Aucun utilisateur trouve</p>
+            <p className="text-white/40 text-sm">{t("dash.staffUsers.noUser")}</p>
           </div>
         ) : (
           <div className="divide-y divide-white/[0.04]">
@@ -246,14 +249,14 @@ export default function StaffUsersPage() {
                   <span className="text-white/60 text-xs">{getStatusLabel(user.status)}</span>
                 </div>
                 <div className="col-span-2 text-white/40 text-xs">
-                  {format(new Date(user.created_at), 'dd MMM yyyy', { locale: fr })}
+                  {format(new Date(user.created_at), 'dd MMM yyyy', { locale: dateFnsLocale })}
                 </div>
                 <div className="col-span-2">
                   <button 
                     onClick={() => handleContact(user)}
                     disabled={contacting === user.id}
                     className="p-1.5 hover:bg-white/5 transition-colors disabled:opacity-50" 
-                    title="Contacter"
+                    title={t("dash.staffUsers.contact")}
                   >
                     {contacting === user.id ? (
                       <Clock className="w-4 h-4 text-white/40 animate-spin" />
