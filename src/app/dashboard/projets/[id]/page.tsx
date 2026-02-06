@@ -43,6 +43,7 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [unauthorized, setUnauthorized] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [userRole, setUserRole] = useState<string>('user');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ 
@@ -72,7 +73,15 @@ export default function ProjectDetailPage() {
         .eq('clerk_id', user?.id)
         .single();
 
-      const role = userData?.role || 'user';
+      if (!userData) {
+        // If we can't determine the user, show a retry-able error
+        console.error('Could not fetch user data for project authorization');
+        setLoadError(true);
+        setLoading(false);
+        return;
+      }
+
+      const role = userData.role || 'user';
       setUserRole(role);
 
       const { data, error } = await supabase
@@ -84,7 +93,7 @@ export default function ProjectDetailPage() {
       if (error) throw error;
 
       // Check authorization: admin/staff/dev can see all, users only their own
-      if (!['admin', 'staff', 'dev'].includes(role) && data.user_id !== userData?.id) {
+      if (!['admin', 'staff', 'dev'].includes(role) && data.user_id !== userData.id) {
         setUnauthorized(true);
         return;
       }
@@ -238,6 +247,23 @@ export default function ProjectDetailPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-6 h-6 border border-white/20 border-t-white/60 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="w-12 h-12 text-white/20 mx-auto mb-4" />
+        <p className="text-white/60">{t('dash.projDetail.loadError')}</p>
+        <div className="flex gap-4 justify-center mt-4">
+          <button onClick={() => { setLoadError(false); setLoading(true); loadProject(); }} className="text-white/60 hover:text-white text-sm underline">
+            {t('dash.common.retry')}
+          </button>
+          <Link href="/dashboard/projets" className="text-white/40 hover:text-white/60 text-sm">
+            {t('dash.projDetail.backToProjects')}
+          </Link>
+        </div>
       </div>
     );
   }

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { useLocale } from '@/contexts';
+import { useToast } from '@/components/ui/Toast';
 
 interface User {
   id: string;
@@ -26,6 +27,7 @@ export default function StaffUsersPage() {
   const { user: clerkUser } = useUser();
   const router = useRouter();
   const { locale, t } = useLocale();
+  const { showToast } = useToast();
   const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [users, setUsers] = useState<User[]>([]);
   const [contacting, setContacting] = useState<string | null>(null);
@@ -103,6 +105,7 @@ export default function StaffUsersPage() {
 
       if (!staffData) {
         console.error('Staff user not found in database');
+        showToast(t("dash.msg.createError"), "error");
         return;
       }
 
@@ -127,7 +130,7 @@ export default function StaffUsersPage() {
         .insert({
           user_id: targetUser.id,
           assigned_staff_id: staffData.id,
-          subject: `Contact avec ${targetUser.first_name || targetUser.email}`,
+          subject: `${t("dash.staffUsers.contactWith")} ${targetUser.first_name || targetUser.email}`,
           status: 'open'
         })
         .select()
@@ -139,6 +142,7 @@ export default function StaffUsersPage() {
       router.push(`/dashboard/messages?conv=${newConv.id}`);
     } catch (error) {
       console.error('Error creating conversation:', error);
+      showToast(t("dash.msg.createError"), "error");
     } finally {
       setContacting(null);
     }

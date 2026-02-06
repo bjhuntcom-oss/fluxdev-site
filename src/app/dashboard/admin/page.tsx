@@ -365,9 +365,9 @@ export default function AdminDashboard() {
         >
           <Users className="w-4 h-4 text-white/40 mb-4 group-hover:text-white/60 transition-colors" />
           <h2 className="text-white/70 text-sm font-light">{t("dash.admin.newUsers")}</h2>
-          <Link href="/dashboard/admin/users" className="text-white/40 text-xs hover:text-white/70 transition-colors">
+          <span className="text-white/40 text-xs hover:text-white/70 transition-colors">
             {t("dash.admin.viewAll")} →
-          </Link>
+          </span>
         </Link>
 
         <Link

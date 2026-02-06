@@ -416,6 +416,7 @@ export default function MessagesPage() {
 
       if (!userData) {
         console.error("User not found in database for clerk_id:", user?.id);
+        showToast(t("dash.msg.createError"), "error");
         return;
       }
 
@@ -437,6 +438,7 @@ export default function MessagesPage() {
       setNewSubject("");
     } catch (error) {
       console.error("Error creating conversation:", error);
+      showToast(t("dash.msg.createError"), "error");
     } finally {
       setIsCreating(false);
     }
