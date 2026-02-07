@@ -50,7 +50,13 @@ Production : [https://www.fluxdev.io](https://www.fluxdev.io)
 - **Notifications** — temps réel via Supabase Realtime
 
 ### Dashboard staff/admin
-- **Gestion utilisateurs** — rôles (user/staff/dev/admin), statuts (active/pending/suspended/banned)
+- **Gestion utilisateurs (admin)** :
+  - Changer le rôle (user → staff → dev → admin)
+  - Activer / Suspendre / Bannir un utilisateur (avec modal de confirmation)
+  - Réactiver un utilisateur banni ou suspendu
+  - Modal détail : dropdowns rôle et statut, infos profil, sessions récentes
+  - Boutons rapides dans le tableau + menu ⋯ avec toutes les actions
+  - Recherche par email/nom, filtres par rôle et statut, pagination
 - **Conversations staff** — assignation, archivage, filtrage par rôle
 - **Administration** — dashboard stats, analytics, logs d'audit
 - **Dev Tools** — outils développeur, logs API
@@ -191,12 +197,18 @@ Déployé automatiquement sur **Vercel** à chaque push sur `master`.
 
 ## Historique des versions
 
-### v0.7.0 — 2026-02-07 (Session 5)
+### v0.7.0 — 2026-02-07 (Session 5–6)
 - ESLint : 26 erreurs → 0 erreurs
-- CI/CD GitHub Actions (lint, type check, build)
-- SonarCloud intégration
-- Upload fichiers messages corrigé (bucket documents)
-- Fonctionnalité features_unlocked supprimée
+- CI/CD GitHub Actions (lint, type check, build) — **CI PASS ✅**
+- SonarCloud intégration complète — **Quality Gate PASSED ✅** (Security A, Maintainability A)
+  - Organisation `bjhuntcom-oss` (Free plan)
+  - Projet `bjhuntcom-oss_fluxdev-site` créé
+  - AutoScan désactivé → analyse CI-based via `sonarqube-scan-action@v6`
+  - 5 GitHub secrets configurés (SONAR_TOKEN, SUPABASE, CLERK)
+- Upload fichiers messages corrigé (bucket `documents`)
+- Toggle `features_unlocked` supprimé (verrouillage/déverrouillage fonctionnalités)
+  - Toutes les actions admin préservées : suspendre, bannir, activer, changer rôle
+- Vercel : déploiements automatiques OK
 
 ### v0.6.0 — 2026-02-07 (Session 4)
 - Breadcrumb avec accents et casing corrects
@@ -238,13 +250,17 @@ Déployé automatiquement sur **Vercel** à chaque push sur `master`.
 
 ---
 
-## Commits (62 total)
+## Commits (67 total)
 
 <details>
 <summary>Historique complet</summary>
 
 | Date | Hash | Description |
 |------|------|-------------|
+| 2026-02-07 | `34072d8` | fix: upgrade sonarqube-scan-action to v6 + create SonarCloud project |
+| 2026-02-07 | `72c9390` | fix: add contents:read permission to sonarcloud workflow |
+| 2026-02-07 | `5d04c24` | ci: trigger workflows with configured secrets |
+| 2026-02-07 | `2e78875` | chore: remove audit .md files, update .gitignore, rewrite README |
 | 2026-02-07 | `3edca16` | fix: file upload uses documents bucket + remove features_unlocked |
 | 2026-02-07 | `380f44b` | docs: add comprehensive platform audit report |
 | 2026-02-07 | `23005d6` | feat: add SonarCloud + CI/CD GitHub Actions |
