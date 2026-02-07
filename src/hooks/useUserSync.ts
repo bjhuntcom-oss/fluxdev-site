@@ -1,53 +1,68 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@clerk/nextjs';
+
+interface SyncedUser {
+  id: string;
+  role: string;
+  status: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+}
 
 export function useUserSync() {
   const { isSignedIn, isLoaded } = useAuth();
   const [isSynced, setIsSynced] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userData, setUserData] = useState<SyncedUser | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const syncAttempted = useRef(false);
 
   useEffect(() => {
     async function syncUser() {
-      if (!isLoaded || !isSignedIn) {
+      if (!isLoaded) return;
+      
+      if (!isSignedIn) {
         setIsLoading(false);
         return;
       }
 
-      try {
-        // Check if user exists
-        const checkRes = await fetch('/api/user/sync');
-        
-        if (checkRes.ok) {
-          const checkData = await checkRes.json();
-          if (checkData.exists) {
-            setIsSynced(true);
-            setIsLoading(false);
-            return;
-          }
-        } else {
-          // GET failed (500/503) - don't block, just try POST once
-          console.warn(`User sync check returned ${checkRes.status}, attempting sync...`);
-        }
+      // Prevent duplicate sync calls (React StrictMode / double-mount)
+      if (syncAttempted.current) return;
+      syncAttempted.current = true;
 
-        // Try to sync user to Supabase
-        const syncRes = await fetch('/api/user/sync', { method: 'POST' });
+      try {
+        // Single POST call: upserts user and returns full data
+        const res = await fetch('/api/user/sync', { method: 'POST' });
         
-        if (syncRes.ok) {
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            setUserData(data.user);
+          }
+          setIsSynced(true);
+        } else if (res.status === 503) {
+          // Admin client unavailable, fallback to GET
+          const getRes = await fetch('/api/user/sync');
+          if (getRes.ok) {
+            const getData = await getRes.json();
+            if (getData.exists && getData.user) {
+              setUserData(getData.user);
+            }
+          }
           setIsSynced(true);
         } else {
-          // Don't block the dashboard - just log and continue
-          console.warn('User sync failed, continuing without sync');
+          console.warn('User sync failed:', res.status);
+          setError(`Sync failed: ${res.status}`);
           setIsSynced(true);
         }
-        
-        setIsLoading(false);
       } catch (err) {
         console.error('User sync error:', err);
-        // Don't block - allow access with warning
+        setError(err instanceof Error ? err.message : 'Unknown error');
         setIsSynced(true);
+      } finally {
         setIsLoading(false);
       }
     }
@@ -55,5 +70,5 @@ export function useUserSync() {
     syncUser();
   }, [isLoaded, isSignedIn]);
 
-  return { isSynced, isLoading, error };
+  return { isSynced, isLoading, userData, error };
 }

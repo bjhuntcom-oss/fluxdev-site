@@ -49,7 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [userStatus, setUserStatus] = useState<string | null>(null);
   const [supabaseUserId, setSupabaseUserId] = useState<string | null>(null);
   const [roleLoaded, setRoleLoaded] = useState(false);
-  const { isSynced, isLoading: isSyncing, error: syncError } = useUserSync();
+  const { isSynced, isLoading: isSyncing, userData: syncedUser, error: syncError } = useUserSync();
   const { logAction } = useActivityLogger(supabaseUserId);
 
   const navItems: NavItem[] = [
@@ -85,28 +85,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     async function fetchUserRole() {
-      if (isLoaded && user) {
-        // Fetch role and ID from Supabase (source of truth)
-        const { data: userData } = await supabase
-          .from('users')
-          .select('id, role, status')
-          .eq('clerk_id', user.id)
-          .single();
+      if (!isLoaded || !user || isSyncing) return;
 
-        if (userData) {
-          setUserRole(userData.role || 'user');
-          setUserStatus(userData.status || 'active');
-          setSupabaseUserId(userData.id);
-        } else {
-          // Fallback to Clerk metadata
-          const role = (user.publicMetadata?.role as string) || "user";
-          setUserRole(role);
-        }
+      // Use data from useUserSync if available (avoids redundant Supabase query)
+      if (syncedUser) {
+        setUserRole(syncedUser.role || 'user');
+        setUserStatus(syncedUser.status || 'active');
+        setSupabaseUserId(syncedUser.id);
         setRoleLoaded(true);
+        return;
       }
+
+      // Fallback: direct Supabase query if sync didn't return user data
+      const { data: dbUser } = await supabase
+        .from('users')
+        .select('id, role, status')
+        .eq('clerk_id', user.id)
+        .single();
+
+      if (dbUser) {
+        setUserRole(dbUser.role || 'user');
+        setUserStatus(dbUser.status || 'active');
+        setSupabaseUserId(dbUser.id);
+      } else {
+        const role = (user.publicMetadata?.role as string) || "user";
+        setUserRole(role);
+      }
+      setRoleLoaded(true);
     }
     fetchUserRole();
-  }, [isLoaded, user]);
+  }, [isLoaded, user, isSyncing, syncedUser]);
 
   // Client-side role-based access control
   useEffect(() => {

@@ -46,20 +46,46 @@ export async function POST(req: Request) {
       const primaryEmail = email_addresses[0]?.email_address;
 
       if (primaryEmail) {
-        const { error } = await supabase.from('users').insert({
-          clerk_id: id,
-          email: primaryEmail,
-          first_name: first_name || null,
-          last_name: last_name || null,
-          avatar_url: image_url || null,
-          role: 'user',
-          status: 'active',
-          features_unlocked: true,
-        });
+        // Check if user already exists (from previous failed signup or sync)
+        const { data: existing } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', primaryEmail)
+          .maybeSingle();
 
-        if (error) {
-          console.error('Error creating user:', error);
-          return new Response('Error creating user', { status: 500 });
+        if (existing) {
+          // Update existing user with new clerk_id (re-signup scenario)
+          const { error } = await supabase
+            .from('users')
+            .update({
+              clerk_id: id,
+              first_name: first_name || null,
+              last_name: last_name || null,
+              avatar_url: image_url || null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existing.id);
+
+          if (error) {
+            console.error('Error updating existing user on create:', error);
+            return new Response('Error updating user', { status: 500 });
+          }
+        } else {
+          const { error } = await supabase.from('users').insert({
+            clerk_id: id,
+            email: primaryEmail,
+            first_name: first_name || null,
+            last_name: last_name || null,
+            avatar_url: image_url || null,
+            role: 'user',
+            status: 'active',
+            features_unlocked: true,
+          });
+
+          if (error) {
+            console.error('Error creating user:', error);
+            return new Response('Error creating user', { status: 500 });
+          }
         }
       }
       break;

@@ -193,6 +193,7 @@ export default function SignInPage() {
                   routing="path"
                   path="/connexion"
                   signUpUrl="/inscription"
+                  fallbackRedirectUrl="/dashboard"
                 />
 
                 {/* Bottom decoration */}
