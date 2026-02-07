@@ -430,7 +430,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <>
                   <ChevronRight className="w-3 h-3" />
                   <span className="text-white/70">
-                    {pathname.split("/").pop()?.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase())}
+                    {(() => {
+                      const segment = pathname.split("/").pop() || "";
+                      const breadcrumbMap: Record<string, string> = {
+                        parametres: "Paramètres",
+                        "api-logs": "API Logs",
+                        messages: "Messages",
+                        documents: "Documents",
+                        projets: "Projets",
+                        users: "Users",
+                        conversations: "Conversations",
+                        admin: "Admin",
+                        analytics: "Analytics",
+                        logs: "Logs",
+                        dev: "Dev",
+                      };
+                      return breadcrumbMap[segment] || segment.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+                    })()}
                   </span>
                 </>
               )}
