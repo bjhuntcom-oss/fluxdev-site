@@ -37,7 +37,7 @@ export async function PATCH(
 
     const { userId } = await params;
     const body = await req.json();
-    const { role, status, features_unlocked } = body;
+    const { role, status } = body;
 
     // Validate role if provided
     if (role !== undefined && !VALID_ROLES.includes(role)) {
@@ -52,7 +52,7 @@ export async function PATCH(
     // Get the target user's current data for audit
     const { data: targetUser } = await supabase
       .from('users')
-      .select('clerk_id, role, status, features_unlocked')
+      .select('clerk_id, role, status')
       .eq('id', userId)
       .single();
 
@@ -64,7 +64,6 @@ export async function PATCH(
     const updateData: Record<string, unknown> = {};
     if (role !== undefined) updateData.role = role;
     if (status !== undefined) updateData.status = status;
-    if (features_unlocked !== undefined) updateData.features_unlocked = features_unlocked;
 
     const { error: supabaseError } = await supabase
       .from('users')
@@ -82,7 +81,6 @@ export async function PATCH(
       const clerkMetadata: Record<string, unknown> = {};
       if (role !== undefined) clerkMetadata.role = role;
       if (status !== undefined) clerkMetadata.status = status;
-      if (features_unlocked !== undefined) clerkMetadata.features_unlocked = features_unlocked;
 
       await clerk.users.updateUserMetadata(targetUser.clerk_id, {
         publicMetadata: clerkMetadata,
@@ -95,7 +93,6 @@ export async function PATCH(
     const oldValues: Record<string, unknown> = {};
     if (role !== undefined) oldValues.role = targetUser.role;
     if (status !== undefined) oldValues.status = targetUser.status;
-    if (features_unlocked !== undefined) oldValues.features_unlocked = targetUser.features_unlocked;
 
     try {
       await supabase.from('audit_logs').insert({

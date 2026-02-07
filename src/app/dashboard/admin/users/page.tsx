@@ -7,8 +7,6 @@ import {
   Shield,
   Code,
   UserCog,
-  Unlock,
-  Lock,
   Eye,
   Mail,
   Clock,
@@ -193,9 +191,6 @@ export default function AdminUsersPage() {
     updateUser(userId, { status: newStatus }, t(toastKeys[newStatus]));
   };
 
-  const toggleFeatures = (userId: string, unlock: boolean) => {
-    updateUser(userId, { features_unlocked: unlock }, unlock ? t('dash.adminUsers.toast.unlocked') : t('dash.adminUsers.toast.locked'));
-  };
 
   const handleStatusAction = (userId: string, action: string) => {
     if (action === 'ban' || action === 'suspend') {
@@ -318,7 +313,6 @@ export default function AdminUsersPage() {
                   <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.user")}</th>
                   <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.role")}</th>
                   <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.status")}</th>
-                  <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.features")}</th>
                   <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.registered")}</th>
                   <th className="text-left p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.lastLogin")}</th>
                   <th className="text-right p-4 text-[10px] text-white/50 font-normal uppercase tracking-widest">{t("dash.adminUsers.col.actions")}</th>
@@ -345,17 +339,6 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="p-4">{getRoleBadge(user.role)}</td>
                     <td className="p-4">{getStatusBadge(user.status)}</td>
-                    <td className="p-4">
-                      {user.features_unlocked ? (
-                        <span className="flex items-center gap-1.5 text-white/70 text-xs">
-                          <Unlock className="w-3 h-3" /> {t("dash.adminUsers.unlocked")}
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1.5 text-white/40 text-xs">
-                          <Lock className="w-3 h-3" /> {t("dash.adminUsers.locked")}
-                        </span>
-                      )}
-                    </td>
                     <td className="p-4 text-white/50 text-xs">
                       {format(new Date(user.created_at), "dd MMM yyyy", { locale: dateFnsLocale })}
                     </td>
@@ -454,14 +437,6 @@ export default function AdminUsersPage() {
                                       <Ban className="w-4 h-4" /> {t("dash.adminUsers.ban")}
                                     </button>
                                   )}
-                                  <div className="border-t border-white/[0.06] my-1" />
-                                  <button
-                                    onClick={() => { setActionMenuOpen(null); toggleFeatures(user.id, !user.features_unlocked); }}
-                                    className="w-full px-3 py-2 text-left text-sm text-white/60 hover:bg-white/[0.04] transition-colors flex items-center gap-2"
-                                  >
-                                    {user.features_unlocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                                    {user.features_unlocked ? t('dash.adminUsers.lockFeatures') : t('dash.adminUsers.unlockFeatures')}
-                                  </button>
                                 </div>
                               )}
                             </div>
@@ -613,29 +588,6 @@ export default function AdminUsersPage() {
                 </div>
               </div>
 
-              {/* Features Toggle */}
-              <div className="p-5 border border-white/10">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-white/80 text-sm font-light">{t("dash.adminUsers.advancedFeatures")}</p>
-                    <p className="text-white/40 text-xs">
-                      {t("dash.adminUsers.advancedFeaturesDesc")}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => toggleFeatures(selectedUser.id, !selectedUser.features_unlocked)}
-                    className={`
-                      px-4 py-2 text-sm font-medium transition-colors border
-                      ${selectedUser.features_unlocked
-                        ? "border-white/20 text-white/70 hover:bg-white/[0.02]"
-                        : "bg-white text-black hover:bg-white/90"
-                      }
-                    `}
-                  >
-                    {selectedUser.features_unlocked ? t("dash.adminUsers.lock") : t("dash.adminUsers.unlock")}
-                  </button>
-                </div>
-              </div>
 
               {/* User Info */}
               <div>

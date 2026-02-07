@@ -19,7 +19,7 @@ interface User {
   last_name: string;
   role: string;
   status: string;
-  features_unlocked: boolean;
+
   created_at: string;
   last_login_at: string | null;
 }

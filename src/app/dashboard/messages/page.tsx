@@ -447,27 +447,27 @@ export default function MessagesPage() {
     }
   };
 
-  // Upload files to Supabase Storage
+  // Upload files to Supabase Storage (uses 'documents' bucket)
   const uploadFiles = async (files: File[]): Promise<Attachment[]> => {
     const attachments: Attachment[] = [];
     
     for (const file of files) {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${selectedConversation}/${fileName}`;
+      const fileName = `messages/${selectedConversation}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
-        .from('message-attachments')
-        .upload(filePath, file);
+        .from('documents')
+        .upload(fileName, file);
       
       if (uploadError) {
         console.error('Upload error:', uploadError);
+        showToast(`Échec upload "${file.name}": ${uploadError.message}`, "error");
         continue;
       }
       
       const { data: { publicUrl } } = supabase.storage
-        .from('message-attachments')
-        .getPublicUrl(filePath);
+        .from('documents')
+        .getPublicUrl(fileName);
       
       attachments.push({
         name: file.name,

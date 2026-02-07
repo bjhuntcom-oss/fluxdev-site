@@ -10,7 +10,7 @@ export interface User {
   avatar_url: string | null;
   role: UserRole;
   status: UserStatus;
-  features_unlocked: boolean;
+
   company: string | null;
   phone: string | null;
   notifications_email: boolean;

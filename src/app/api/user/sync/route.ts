@@ -100,7 +100,7 @@ export async function POST() {
         avatar_url: user.imageUrl || null,
         role: 'user',
         status: 'active',
-        features_unlocked: true,
+
         notifications_email: true,
         notifications_messages: true,
         notifications_updates: true,

@@ -79,7 +79,7 @@ export async function POST(req: Request) {
             avatar_url: image_url || null,
             role: 'user',
             status: 'active',
-            features_unlocked: true,
+
           });
 
           if (error) {
