@@ -26,6 +26,7 @@ export const dashboardTranslations: Record<"fr" | "en", Record<string, string>> 
     "dash.nav.admin.users": "Utilisateurs",
     "dash.nav.admin.analytics": "Analytics",
     "dash.nav.admin.logs": "Logs",
+    "dash.nav.logout": "Déconnexion",
 
     // ============ MAIN DASHBOARD ============
     "dash.main.label": "Vue d'ensemble",
@@ -547,6 +548,7 @@ export const dashboardTranslations: Record<"fr" | "en", Record<string, string>> 
     "dash.nav.admin.users": "Users",
     "dash.nav.admin.analytics": "Analytics",
     "dash.nav.admin.logs": "Logs",
+    "dash.nav.logout": "Sign out",
 
     // ============ MAIN DASHBOARD ============
     "dash.main.label": "Overview",

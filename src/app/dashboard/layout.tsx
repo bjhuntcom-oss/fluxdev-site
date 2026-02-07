@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser, useClerk } from "@clerk/nextjs";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Loader2,
   Globe,
+  LogOut,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { UserButton } from "@clerk/nextjs";
@@ -41,6 +42,7 @@ interface NavItem {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
   const router = useRouter();
   const pathname = usePathname();
   const { locale, setLocale, t } = useLocale();
@@ -326,6 +328,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </p>
                 <p className="text-white/40 text-[10px] uppercase tracking-wider">{userRole}</p>
               </div>
+              <button
+                onClick={() => signOut({ redirectUrl: '/' })}
+                className="p-2 text-white/30 hover:text-red-400 hover:bg-white/[0.04] transition-all rounded"
+                title={t('dash.nav.logout')}
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
