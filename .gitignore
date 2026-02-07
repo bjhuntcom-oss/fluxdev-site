@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# audit/report markdown files (keep only README.md)
+AUDIT_REPORT*.md
+BUGS*.md
+SECURITY_AUDIT*.md
+SCHEMA_RELATIONNEL*.md
+
+# sonar
+.scannerwork/
+eslint-report.json
