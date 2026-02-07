@@ -241,7 +241,7 @@ export default function ProjetsPage() {
                   </button>
                   {openMenuId === project.id && (
                     <>
-                    <div className="fixed inset-0 z-[9]" onClick={() => setOpenMenuId(null)} />
+                    <div className="fixed inset-0 z-[9]" onClick={() => setOpenMenuId(null)} role="presentation" />
                     <div className="absolute right-0 top-full mt-1 bg-[#0a0a0a] border border-white/10 min-w-[140px] z-10">
                       {project.status !== 'active' && (
                         <button

@@ -154,6 +154,7 @@ export function HeroSection() {
             <div 
               ref={imageContainerRef}
               onMouseMove={handleMouseMove}
+              role="presentation"
               className="relative select-none"
               style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
             >

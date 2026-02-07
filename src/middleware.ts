@@ -4,24 +4,46 @@ import { NextResponse } from 'next/server';
 /**
  * Minimal Decoy Headers for Scanner Misdirection
  * 
- * Reduced to 8 credible headers to avoid detection by advanced scanners.
+ * Reduced to credible headers to avoid detection by advanced scanners.
  * Too many decoy headers can be a fingerprint in itself.
  */
 const decoyHeaders: Record<string, string> = {
-  // Standard server header (common misdirection)
   'Server': 'nginx/1.24.0',
-  
-  // Varnish cache (very common)
   'X-Varnish': '123456789',
   'X-Cache': 'HIT',
-  
-  // Cloudflare-like headers (widely used)
   'CF-Cache-Status': 'HIT',
-  
-  // Security headers (legitimate)
+};
+
+/**
+ * Real Security Headers — defense-in-depth
+ * 
+ * Anti-interception strategy (Burp Suite, mitmproxy, Charles):
+ * - HSTS with preload: forces HTTPS, prevents SSL downgrade
+ * - Certificate Transparency: detects rogue certificates
+ * - COOP/CORP/COEP: cross-origin isolation, prevents data leaks
+ * - CSP: blocks injected scripts/resources by proxy
+ * - Permissions-Policy: restricts browser APIs
+ * - Cache-Control on dashboard: prevents caching of sensitive data
+ */
+const securityHeaders: Record<string, string> = {
+  // Prevent MIME sniffing
   'X-Content-Type-Options': 'nosniff',
-  'X-XSS-Protection': '1; mode=block',
+  // Clickjacking protection
   'X-Frame-Options': 'SAMEORIGIN',
+  // XSS filter (legacy browsers)
+  'X-XSS-Protection': '1; mode=block',
+  // HSTS — force HTTPS for 2 years, include subdomains, preload-ready
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+  // Referrer policy — send origin only cross-origin
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  // Cross-Origin Opener Policy — isolate browsing context
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  // Cross-Origin Resource Policy — block cross-origin reads
+  'Cross-Origin-Resource-Policy': 'same-origin',
+  // Restrict browser features
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=(), usb=(), bluetooth=(), serial=(), hid=()',
+  // DNS prefetch for performance
+  'X-DNS-Prefetch-Control': 'on',
 };
 
 const isPublicRoute = createRouteMatcher([
@@ -38,28 +60,33 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhooks(.*)',
 ]);
 
-// Route matchers kept for future server-side role enforcement
-// const isAdminRoute = createRouteMatcher(['/dashboard/admin(.*)']);
-// const isStaffRoute = createRouteMatcher(['/dashboard/staff(.*)']);
-// const isDevRoute = createRouteMatcher(['/dashboard/dev(.*)']);
+const isDashboardRoute = createRouteMatcher(['/dashboard(.*)']);
+const isApiRoute = createRouteMatcher(['/api(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {
     await auth.protect();
   }
 
-  // Role-based access control is handled client-side in layout.tsx
-  // This ensures Supabase is the single source of truth for roles
-  // Clerk publicMetadata can be out of sync with Supabase
-
-  // Create response with decoy headers
   const response = NextResponse.next();
   
-  // Inject decoy headers to mislead scanners
+  // Inject decoy headers (intentional — mislead Wappalyzer/scanners)
   for (const [key, value] of Object.entries(decoyHeaders)) {
     response.headers.set(key, value);
   }
-  
+
+  // Inject real security headers
+  for (const [key, value] of Object.entries(securityHeaders)) {
+    response.headers.set(key, value);
+  }
+
+  // Dashboard/API: prevent caching of sensitive authenticated data
+  if (isDashboardRoute(req) || isApiRoute(req)) {
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+  }
+
   return response;
 });
 

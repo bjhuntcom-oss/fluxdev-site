@@ -887,7 +887,7 @@ export default function MessagesPage() {
                 </button>
                 {showMenu && (
                   <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+                  <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} role="presentation" />
                   <div className="absolute right-0 top-full mt-1 bg-[#0a0a0a] border border-white/10 min-w-[160px] z-50">
                     <button
                       onClick={() => archiveConversation(selectedConversation)}
@@ -1110,6 +1110,7 @@ export default function MessagesPage() {
           <div
             className="fixed inset-0 z-40"
             onClick={closeContextMenu}
+            role="presentation"
           />
           <div
             className="fixed z-50 bg-[#0a0a0a] border border-white/10 py-1 min-w-[180px] shadow-xl"
@@ -1166,9 +1167,12 @@ export default function MessagesPage() {
         <div
           className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
           onClick={() => setShowAssignModal(null)}
+          role="dialog"
+          aria-modal="true"
         >
           <div
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            role="presentation"
             className="bg-[#0a0a0a] border border-white/[0.06] p-6 w-full max-w-md"
           >
             <div className="flex items-center justify-between mb-6">
@@ -1213,9 +1217,12 @@ export default function MessagesPage() {
         <div
           className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={() => !isCreating && setShowNewConversation(false)}
+          role="dialog"
+          aria-modal="true"
         >
           <div
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            role="presentation"
             className="bg-[#0a0a0a] border border-white/[0.08] p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200"
           >
             <div className="flex items-center justify-between mb-6">

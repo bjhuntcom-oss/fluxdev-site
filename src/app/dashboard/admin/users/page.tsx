@@ -479,13 +479,13 @@ export default function AdminUsersPage() {
 
       {/* Click outside to close action menu */}
       {actionMenuOpen && (
-        <div className="fixed inset-0 z-40" onClick={() => setActionMenuOpen(null)} />
+        <div className="fixed inset-0 z-40" onClick={() => setActionMenuOpen(null)} role="presentation" />
       )}
 
       {/* Confirmation Modal */}
       {showConfirmModal && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowConfirmModal(null)}>
-          <div onClick={(e: React.MouseEvent) => e.stopPropagation()} className="bg-[#0a0a0a] border border-white/10 w-full max-w-sm p-6">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowConfirmModal(null)} role="dialog" aria-modal="true">
+          <div onClick={(e: React.MouseEvent) => e.stopPropagation()} role="presentation" className="bg-[#0a0a0a] border border-white/10 w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-4">
               {showConfirmModal.action === 'ban' ? (
                 <Ban className="w-5 h-5 text-red-400" />
@@ -527,9 +527,12 @@ export default function AdminUsersPage() {
         <div
           className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
           onClick={() => setShowUserModal(false)}
+          role="dialog"
+          aria-modal="true"
         >
           <div
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            role="presentation"
             className="bg-[#0a0a0a] border border-white/10 w-full max-w-2xl max-h-[90vh] overflow-hidden"
           >
             {/* Modal Header */}

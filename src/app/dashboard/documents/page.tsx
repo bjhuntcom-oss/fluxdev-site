@@ -491,9 +491,12 @@ export default function DocumentsPage() {
         <div
           className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
           onClick={() => !isUploading && setShowUploadModal(false)}
+          role="dialog"
+          aria-modal="true"
         >
           <div
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            role="presentation"
             className="bg-[#0a0a0a] border border-white/[0.06] p-6 w-full max-w-md"
           >
             <div className="flex items-center justify-between mb-6">
@@ -604,9 +607,12 @@ export default function DocumentsPage() {
         <div
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
           onClick={() => setPreviewDoc(null)}
+          role="dialog"
+          aria-modal="true"
         >
           <div
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            role="presentation"
             className="bg-[#0a0a0a] border border-white/[0.06] w-full max-w-4xl max-h-[90vh] flex flex-col"
           >
             {/* Header */}

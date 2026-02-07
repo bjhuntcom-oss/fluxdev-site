@@ -146,6 +146,7 @@ export function Header() {
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/95 backdrop-blur-2xl"
               onClick={() => setIsMobileMenuOpen(false)}
+              role="presentation"
             />
             
             <motion.div
