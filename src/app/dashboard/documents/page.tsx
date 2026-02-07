@@ -20,6 +20,7 @@ import { fr, enUS } from "date-fns/locale";
 import { sanitizeInput } from "@/lib/security";
 import { useToast } from "@/components/ui/Toast";
 import { useLocale } from "@/contexts";
+import { useLogAction } from "@/contexts/ActivityLoggerContext";
 
 interface Document {
   id: string;
@@ -61,6 +62,7 @@ export default function DocumentsPage() {
   const { user } = useUser();
   const { showToast } = useToast();
   const { locale, t } = useLocale();
+  const logAction = useLogAction();
   const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -278,6 +280,7 @@ export default function DocumentsPage() {
       setShowUploadModal(false);
       setSelectedFile(null);
       setDocumentType("autre");
+      logAction({ action: 'upload', entityType: 'document', newValues: { file_name: selectedFile.name, file_type: selectedFile.type, file_size: selectedFile.size, document_type: documentType } });
       loadDocuments();
     } catch (error) {
       console.error("Error uploading document:", error);
@@ -309,6 +312,7 @@ export default function DocumentsPage() {
       setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
       setSuccess(t("dash.doc.deleteSuccess"));
       showToast(t("dash.doc.deleteSuccess"), "success");
+      logAction({ action: 'delete', entityType: 'document', entityId: doc.id, oldValues: { file_name: doc.file_name } });
     } catch (error) {
       console.error("Error deleting document:", error);
       setError(t("dash.doc.deleteError"));

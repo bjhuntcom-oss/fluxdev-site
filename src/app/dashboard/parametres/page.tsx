@@ -6,6 +6,7 @@ import { User, Bell, Shield, Save, Loader2, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useLocale } from "@/contexts";
 import { useToast } from "@/components/ui/Toast";
+import { useLogAction } from "@/contexts/ActivityLoggerContext";
 
 interface UserPreferences {
   notifications_email: boolean;
@@ -18,6 +19,7 @@ export default function SettingsPage() {
   const { openUserProfile } = useClerk();
   const { t } = useLocale();
   const { showToast } = useToast();
+  const logAction = useLogAction();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -87,6 +89,7 @@ export default function SettingsPage() {
 
       if (supaError) throw supaError;
 
+      logAction({ action: 'update', entityType: 'settings', newValues: { firstName, lastName, notifications } });
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {

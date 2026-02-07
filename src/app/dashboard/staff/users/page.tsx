@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { useLocale } from '@/contexts';
 import { useToast } from '@/components/ui/Toast';
+import { useLogAction } from '@/contexts/ActivityLoggerContext';
 
 interface User {
   id: string;
@@ -28,6 +29,7 @@ export default function StaffUsersPage() {
   const router = useRouter();
   const { locale, t } = useLocale();
   const { showToast } = useToast();
+  const logAction = useLogAction();
   const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [users, setUsers] = useState<User[]>([]);
   const [contacting, setContacting] = useState<string | null>(null);
@@ -138,6 +140,7 @@ export default function StaffUsersPage() {
 
       if (error) throw error;
 
+      logAction({ action: 'contact_user', entityType: 'conversation', entityId: newConv.id, newValues: { target_user: targetUser.email } });
       // Navigate to the new conversation
       router.push(`/dashboard/messages?conv=${newConv.id}`);
     } catch (error) {

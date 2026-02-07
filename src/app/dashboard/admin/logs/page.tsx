@@ -45,7 +45,7 @@ export default function AdminLogsPage() {
           user:users(email, first_name)
         `)
         .order('created_at', { ascending: false })
-        .limit(200);
+        .limit(500);
 
       if (error) throw error;
       setLogs(data || []);
@@ -71,10 +71,20 @@ export default function AdminLogsPage() {
   });
 
   const getActionColor = (action: string) => {
-    if (action.includes('create')) return 'text-green-400';
-    if (action.includes('update')) return 'text-yellow-400';
+    if (action.includes('create') || action === 'upload' || action === 'contact_user') return 'text-green-400';
+    if (action.includes('update') || action === 'assign_staff' || action === 'unassign_staff') return 'text-yellow-400';
     if (action.includes('delete')) return 'text-red-400';
+    if (action === 'page_view' || action === 'page_leave') return 'text-white/30';
+    if (action === 'send_message') return 'text-blue-400';
+    if (action === 'archive' || action === 'unarchive') return 'text-purple-400';
     return 'text-blue-400';
+  };
+
+  const formatDetails = (log: AuditLog) => {
+    const vals = log.new_values || log.old_values;
+    if (!vals) return log.entity_id ? `ID: ${log.entity_id.slice(0, 8)}...` : '-';
+    const entries = Object.entries(vals).slice(0, 3);
+    return entries.map(([k, v]) => `${k}: ${typeof v === 'string' ? (v.length > 30 ? v.slice(0, 30) + '...' : v) : String(v)}`).join(' | ');
   };
 
   return (
@@ -167,8 +177,8 @@ export default function AdminLogsPage() {
                       {log.entity_type}
                     </span>
                   </div>
-                  <div className="col-span-3 text-white/30 text-xs truncate">
-                    {log.entity_id ? `ID: ${log.entity_id.slice(0, 8)}...` : '-'}
+                  <div className="col-span-3 text-white/30 text-xs truncate" title={JSON.stringify(log.new_values || log.old_values, null, 2)}>
+                    {formatDetails(log)}
                   </div>
                 </div>
               );
@@ -185,13 +195,13 @@ export default function AdminLogsPage() {
         <div className="border border-white/10 p-4">
           <p className="text-white/40 text-xs mb-1">{t("dash.logs.creations")}</p>
           <p className="text-2xl font-light text-green-400">
-            {logs.filter(l => l.action.includes('create')).length}
+            {logs.filter(l => l.action.includes('create') || l.action === 'upload' || l.action === 'contact_user' || l.action === 'send_message').length}
           </p>
         </div>
         <div className="border border-white/10 p-4">
           <p className="text-white/40 text-xs mb-1">{t("dash.logs.modifications")}</p>
           <p className="text-2xl font-light text-yellow-400">
-            {logs.filter(l => l.action.includes('update')).length}
+            {logs.filter(l => l.action.includes('update') || l.action === 'assign_staff' || l.action === 'unassign_staff' || l.action === 'archive' || l.action === 'unarchive').length}
           </p>
         </div>
         <div className="border border-white/10 p-4">

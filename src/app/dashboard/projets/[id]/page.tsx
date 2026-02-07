@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { useLocale } from '@/contexts';
 import { useToast } from '@/components/ui/Toast';
+import { useLogAction } from '@/contexts/ActivityLoggerContext';
 import Link from 'next/link';
 
 interface Task {
@@ -41,6 +42,7 @@ export default function ProjectDetailPage() {
   const { user } = useUser();
   const { locale, t } = useLocale();
   const { showToast } = useToast();
+  const logAction = useLogAction();
   const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
@@ -136,6 +138,7 @@ export default function ProjectDetailPage() {
 
       if (error) throw error;
       setIsEditing(false);
+      logAction({ action: 'update', entityType: 'project', entityId: project.id, newValues: { title: editForm.title, description: editForm.description } });
       loadProject();
     } catch (error) {
       console.error('Error updating project:', error);
@@ -152,6 +155,7 @@ export default function ProjectDetailPage() {
         .eq('id', project.id);
 
       if (error) throw error;
+      logAction({ action: 'update_status', entityType: 'project', entityId: project.id, newValues: { status: newStatus } });
       loadProject();
     } catch (error) {
       console.error('Error updating status:', error);
@@ -194,6 +198,7 @@ export default function ProjectDetailPage() {
         .eq('id', project.id);
       if (error) throw error;
       setTasks(updatedTasks);
+      logAction({ action: 'update_tasks', entityType: 'project', entityId: project.id, newValues: { task_count: updatedTasks.length } });
     } catch (error) {
       console.error('Error saving tasks:', error);
       showToast(t('dash.projDetail.saveError'), 'error');
@@ -205,6 +210,7 @@ export default function ProjectDetailPage() {
     try {
       const { error } = await supabase.from('projects').delete().eq('id', project.id);
       if (error) throw error;
+      logAction({ action: 'delete', entityType: 'project', entityId: project.id, oldValues: { title: project.title } });
       router.push('/dashboard/projets');
     } catch (error) {
       console.error('Error deleting project:', error);

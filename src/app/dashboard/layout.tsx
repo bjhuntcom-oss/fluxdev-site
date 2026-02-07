@@ -23,10 +23,12 @@ import {
 import { useState, useEffect, useRef } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { useUserSync } from "@/hooks/useUserSync";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 import { supabase, initClerkId } from "@/lib/supabase/client";
 import { ToastProvider } from "@/components/ui/Toast";
 import { NotificationDropdown } from "@/components/ui/NotificationDropdown";
 import { useLocale } from "@/contexts";
+import { ActivityLoggerProvider } from "@/contexts/ActivityLoggerContext";
 
 interface NavItem {
   label: string;
@@ -48,6 +50,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [supabaseUserId, setSupabaseUserId] = useState<string | null>(null);
   const [roleLoaded, setRoleLoaded] = useState(false);
   const { isSynced, isLoading: isSyncing, error: syncError } = useUserSync();
+  const { logAction } = useActivityLogger(supabaseUserId);
 
   const navItems: NavItem[] = [
     { label: t("dash.nav.dashboard"), href: "/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -230,6 +233,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <ToastProvider>
+    <ActivityLoggerProvider logAction={logAction}>
     <div className="h-screen bg-black flex overflow-hidden">
       {/* Mobile Menu Button */}
       <button
@@ -363,6 +367,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </main>
     </div>
+    </ActivityLoggerProvider>
     </ToastProvider>
   );
 }

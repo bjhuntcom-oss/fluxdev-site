@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { useLocale } from '@/contexts';
 import { useToast } from '@/components/ui/Toast';
+import { useLogAction } from '@/contexts/ActivityLoggerContext';
 import Link from 'next/link';
 
 interface Project {
@@ -25,6 +26,7 @@ export default function ProjetsPage() {
   const { user } = useUser();
   const { locale, t } = useLocale();
   const { showToast } = useToast();
+  const logAction = useLogAction();
   const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,6 +103,7 @@ export default function ProjetsPage() {
 
       setShowModal(false);
       setNewProject({ name: '', description: '' });
+      logAction({ action: 'create', entityType: 'project', newValues: { title: newProject.name } });
       loadProjects();
     } catch (error) {
       console.error('Error creating project:', error);
@@ -135,6 +138,7 @@ export default function ProjetsPage() {
       if (error) throw error;
       setProjects(prev => prev.map(p => p.id === projectId ? { ...p, status: newStatus as Project['status'] } : p));
       setOpenMenuId(null);
+      logAction({ action: 'update_status', entityType: 'project', entityId: projectId, newValues: { status: newStatus } });
     } catch (error) {
       console.error('Error updating project:', error);
       showToast(t('dash.projDetail.saveError'), 'error');
@@ -146,6 +150,7 @@ export default function ProjetsPage() {
     try {
       const { error } = await supabase.from('projects').delete().eq('id', projectId);
       if (error) throw error;
+      logAction({ action: 'delete', entityType: 'project', entityId: projectId });
       setProjects(prev => prev.filter(p => p.id !== projectId));
     } catch (error) {
       console.error('Error deleting project:', error);

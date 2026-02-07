@@ -28,6 +28,7 @@ import { format } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 import { useToast } from "@/components/ui/Toast";
 import { useLocale } from "@/contexts";
+import { useLogAction } from "@/contexts/ActivityLoggerContext";
 
 interface Attachment {
   name: string;
@@ -88,6 +89,7 @@ export default function MessagesPage() {
   const searchParams = useSearchParams();
   const { showToast } = useToast();
   const { locale, t } = useLocale();
+  const logAction = useLogAction();
   const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -304,6 +306,7 @@ export default function MessagesPage() {
       if (error) throw error;
       
       setShowAssignModal(null);
+      logAction({ action: 'assign_staff', entityType: 'conversation', entityId: conversationId, newValues: { assigned_staff_id: staffId } });
       loadConversations(); // Refresh list
     } catch (error) {
       console.error("Error assigning conversation:", error);
@@ -320,6 +323,7 @@ export default function MessagesPage() {
         .eq("id", conversationId);
 
       if (error) throw error;
+      logAction({ action: 'unassign_staff', entityType: 'conversation', entityId: conversationId });
       loadConversations();
     } catch (error) {
       console.error("Error unassigning conversation:", error);
@@ -438,6 +442,7 @@ export default function MessagesPage() {
       setSelectedConversation(data.id);
       setShowNewConversation(false);
       setNewSubject("");
+      logAction({ action: 'create', entityType: 'conversation', entityId: data.id, newValues: { subject: data.subject } });
     } catch (error) {
       console.error("Error creating conversation:", error);
       showToast(t("dash.msg.createError"), "error");
@@ -512,6 +517,7 @@ export default function MessagesPage() {
         .update({ updated_at: new Date().toISOString() })
         .eq("id", selectedConversation);
       
+      logAction({ action: 'send_message', entityType: 'message', entityId: selectedConversation, newValues: { has_attachments: attachments.length > 0 } });
       // Reload messages to show the new one
       await loadMessages(selectedConversation);
     } catch (error) {
@@ -593,8 +599,10 @@ export default function MessagesPage() {
     try {
       // Delete messages first
       await supabase.from("messages").delete().eq("conversation_id", conversationId);
+      logAction({ action: 'delete', entityType: 'message', entityId: conversationId });
       // Then delete conversation
       await supabase.from("conversations").delete().eq("id", conversationId);
+      logAction({ action: 'delete', entityType: 'conversation', entityId: conversationId });
 
       setConversations(prev => prev.filter(c => c.id !== conversationId));
       if (selectedConversation === conversationId) {
@@ -627,6 +635,7 @@ export default function MessagesPage() {
         setSelectedConversation(null);
       }
       
+      logAction({ action: newStatus === 'archived' ? 'archive' : 'unarchive', entityType: 'conversation', entityId: conversationId, newValues: { status: newStatus } });
       setShowMenu(false);
       closeContextMenu();
     } catch (error) {
