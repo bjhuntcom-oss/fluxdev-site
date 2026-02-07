@@ -297,7 +297,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               ))}
             </div>
 
-            {canAccess(["staff", "admin"]) && (
+            {canAccess(["staff", "dev", "admin"]) && (
               <div className="mb-6">
                 <p className="px-4 text-[10px] text-white/30 uppercase tracking-widest mb-3">{t("dash.nav.staff")}</p>
                 {staffNavItems.map((item) => (
