@@ -345,7 +345,7 @@ export default function CrmIaPage() {
                     <Sparkles className="w-3 h-3 text-white/50" />
                     <span className="text-[10px] font-medium text-white/70">Recommandation IA</span>
                   </div>
-                  <p className="text-[10px] text-white/60">Sentiment très positif détecté dans le dernier email. Recommandation: envoyer la proposition finale aujourd'hui.</p>
+                  <p className="text-[10px] text-white/60">Sentiment très positif détecté dans le dernier email. Recommandation: envoyer la proposition finale aujourd&apos;hui.</p>
                 </div>
               </div>
             </motion.div>

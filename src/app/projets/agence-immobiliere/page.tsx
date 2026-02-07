@@ -135,7 +135,7 @@ export default function AgenceImmobilierePage() {
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-8 lg:p-12">
                   <div className="max-w-xl">
                     <h2 className="text-2xl lg:text-4xl font-light text-white leading-tight">
-                      L'immobilier<br />d'exception
+                      L&apos;immobilier<br />d&apos;exception
                     </h2>
                     <p className="text-sm text-white/70 mt-4 max-w-md">
                       Découvrez notre sélection de biens prestigieux avec visites virtuelles 3D.
@@ -361,7 +361,7 @@ export default function AgenceImmobilierePage() {
                     <Calculator className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-sm font-medium text-neutral-800">Estimation de votre bien</h3>
-                  <p className="text-[10px] text-neutral-500">Basée sur l'IA et les données du marché</p>
+                  <p className="text-[10px] text-neutral-500">Basée sur l&apos;IA et les données du marché</p>
                 </div>
                 
                 <div className="bg-neutral-50 rounded-lg p-4 mb-4 text-center">

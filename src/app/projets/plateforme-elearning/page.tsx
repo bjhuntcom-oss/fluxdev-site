@@ -353,7 +353,7 @@ export default function PlateformeElearningPage() {
                         <Trophy className="w-8 h-8 text-white" />
                       </div>
                     </div>
-                    <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Certificat d'achèvement</p>
+                    <p className="text-[10px] text-neutral-500 uppercase tracking-wider mb-1">Certificat d&apos;achèvement</p>
                     <h3 className="text-lg font-bold text-neutral-800 mb-2">Développement Web Full-Stack</h3>
                     <p className="text-[10px] text-neutral-500 mb-3">Ce certificat atteste que</p>
                     <p className="text-sm font-medium text-neutral-800 mb-3">Marie Dupont</p>

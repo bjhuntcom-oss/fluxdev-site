@@ -293,7 +293,7 @@ export default function PortailCitoyensPage() {
                       <Baby className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-neutral-800">Demande d'acte de naissance</h3>
+                      <h3 className="text-sm font-medium text-neutral-800">Demande d&apos;acte de naissance</h3>
                       <p className="text-[10px] text-neutral-500">Réf: ACT-2024-00847</p>
                     </div>
                   </div>
@@ -339,7 +339,7 @@ export default function PortailCitoyensPage() {
                   <div className="p-3 bg-neutral-50 border border-neutral-200 rounded">
                     <div className="flex items-start gap-2">
                       <Info className="w-3 h-3 text-neutral-500 mt-0.5" />
-                      <p className="text-[10px] text-neutral-600">Vous pouvez joindre un justificatif d'identité à l'étape suivante.</p>
+                      <p className="text-[10px] text-neutral-600">Vous pouvez joindre un justificatif d&apos;identité à l&apos;étape suivante.</p>
                     </div>
                   </div>
                 </div>
@@ -449,7 +449,7 @@ export default function PortailCitoyensPage() {
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-neutral-800">Bonjour Marie</h3>
-                      <p className="text-[10px] text-neutral-500">Dernière connexion: Aujourd'hui, 14:32</p>
+                      <p className="text-[10px] text-neutral-500">Dernière connexion: Aujourd&apos;hui, 14:32</p>
                     </div>
                   </div>
                   <Bell className="w-4 h-4 text-neutral-400" />

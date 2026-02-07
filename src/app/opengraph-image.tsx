@@ -85,7 +85,7 @@ export default async function Image() {
               lineHeight: 1.4,
             }}
           >
-            Solutions Digitales Propulsées par l'IA
+            Solutions Digitales Propulsées par l&apos;IA
           </div>
           
           {/* Stats */}

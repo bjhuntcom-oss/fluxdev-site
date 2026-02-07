@@ -172,7 +172,7 @@ export default function EcommerceLuxePage() {
                         Collection 2025
                       </span>
                       <h2 className="text-2xl lg:text-5xl font-light text-black leading-tight">
-                        L'Excellence<br />
+                        L&apos;Excellence<br />
                         <span className="text-neutral-400">Redéfinie</span>
                       </h2>
                       <p className="text-xs lg:text-sm text-neutral-500 max-w-xs leading-relaxed">
@@ -503,7 +503,7 @@ export default function EcommerceLuxePage() {
                 <span className="text-[10px] text-neutral-400 uppercase tracking-[0.3em]">Collection</span>
                 <h2 className="text-3xl font-light text-black mt-2">Maroquinerie</h2>
                 <p className="text-sm text-neutral-500 mt-3 max-w-lg mx-auto">
-                  L'excellence du cuir français, façonné dans nos ateliers par des artisans d'exception.
+                  L&apos;excellence du cuir français, façonné dans nos ateliers par des artisans d&apos;exception.
                 </p>
               </div>
 

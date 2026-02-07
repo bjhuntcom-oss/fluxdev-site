@@ -169,7 +169,7 @@ export default function DashboardAnalyticsPage() {
                   {/* Header */}
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-sm lg:text-lg font-medium text-white">Vue d'ensemble</h2>
+                      <h2 className="text-sm lg:text-lg font-medium text-white">Vue d&apos;ensemble</h2>
                       <p className="text-[10px] lg:text-xs text-white/40">Dernière mise à jour: il y a 2 min</p>
                     </div>
                     <div className="flex gap-2">

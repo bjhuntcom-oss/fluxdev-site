@@ -612,7 +612,7 @@ export default function AppBancairePage() {
                       <span className="text-xs font-medium text-white">Historique</span>
                       <Filter className="w-3 h-3 text-white/40" />
                     </div>
-                    <p className="text-[8px] text-white/40 mb-2">Aujourd'hui</p>
+                    <p className="text-[8px] text-white/40 mb-2">Aujourd&apos;hui</p>
                     <div className="space-y-2">
                       {[
                         { icon: ShoppingBag, name: "Amazon", amount: "-€49.99", time: "14:32" },

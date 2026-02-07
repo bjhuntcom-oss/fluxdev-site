@@ -155,7 +155,7 @@ export default function AppFidelitePage() {
                         <div>
                           <p className="text-[10px] text-white/80">Mes points</p>
                           <p className="text-2xl font-bold text-white">2,450</p>
-                          <p className="text-[10px] text-white/70 mt-1">= 24,50€ d'achats</p>
+                          <p className="text-[10px] text-white/70 mt-1">= 24,50€ d&apos;achats</p>
                         </div>
                         <div className="text-right">
                           <div className="px-2 py-1 bg-white/20 rounded text-[10px] text-white inline-block">Gold ⭐</div>

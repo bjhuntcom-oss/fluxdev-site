@@ -143,7 +143,7 @@ export default function MarketplaceB2BPage() {
                 {/* Results */}
                 <div className="px-8 py-6">
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm text-neutral-600">24 résultats pour "Roulement SKF 6205"</p>
+                    <p className="text-sm text-neutral-600">24 résultats pour &quot;Roulement SKF 6205&quot;</p>
                     <select className="text-xs border border-neutral-200 rounded px-2 py-1">
                       <option>Prix croissant</option>
                     </select>

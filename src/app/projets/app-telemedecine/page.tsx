@@ -458,7 +458,7 @@ export default function AppTelemedecinePage() {
                   </div>
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-[10px] text-neutral-500">Aujourd'hui</span>
+                      <span className="text-[10px] text-neutral-500">Aujourd&apos;hui</span>
                       <span className="text-[10px] text-[#0891b2]">3 prises</span>
                     </div>
                     
@@ -525,7 +525,7 @@ export default function AppTelemedecinePage() {
                     <div className="flex-1 space-y-2 overflow-hidden">
                       <div className="flex justify-start"><div className="bg-neutral-100 rounded-lg rounded-tl-none px-3 py-2 max-w-[80%]"><p className="text-[10px] text-neutral-700">Bonjour, comment vous sentez-vous après le traitement ?</p><span className="text-[8px] text-neutral-400">10:32</span></div></div>
                       <div className="flex justify-end"><div className="bg-[#0891b2] rounded-lg rounded-tr-none px-3 py-2 max-w-[80%]"><p className="text-[10px] text-white">Beaucoup mieux, merci ! La fièvre est tombée.</p><span className="text-[8px] text-white/60">10:35</span></div></div>
-                      <div className="flex justify-start"><div className="bg-neutral-100 rounded-lg rounded-tl-none px-3 py-2 max-w-[80%]"><p className="text-[10px] text-neutral-700">Parfait, continuez le traitement jusqu'à la fin.</p><span className="text-[8px] text-neutral-400">10:36</span></div></div>
+                      <div className="flex justify-start"><div className="bg-neutral-100 rounded-lg rounded-tl-none px-3 py-2 max-w-[80%]"><p className="text-[10px] text-neutral-700">Parfait, continuez le traitement jusqu&apos;à la fin.</p><span className="text-[8px] text-neutral-400">10:36</span></div></div>
                     </div>
                     <div className="flex items-center gap-2 mt-3 pt-3 border-t border-neutral-100">
                       <input type="text" placeholder="Message..." className="flex-1 text-[10px] px-3 py-2 bg-neutral-50 rounded-full outline-none" />
