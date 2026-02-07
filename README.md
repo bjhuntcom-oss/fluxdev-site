@@ -62,13 +62,30 @@ Production : [https://www.fluxdev.io](https://www.fluxdev.io)
 - **Dev Tools** — outils développeur, logs API
 - **Analytics** — pages vues, actions utilisateurs, entités les plus actives
 
-### Sécurité
+### Sécurité & Anti-interception
 - **RLS (Row Level Security)** — toutes les tables protégées via header `x-clerk-id`
 - **Rate limiting** — Upstash Redis (login, register, message, upload, API)
 - **Input sanitization** — Zod schemas + sanitizeInput/sanitizeHtml
-- **Security headers** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options
 - **File validation** — types MIME + taille max côté serveur
 - **Audit logging** — toutes les actions CRUD loguées dans `audit_logs`
+- **Security headers renforcés** :
+  - CSP strict (script-src, connect-src, frame-src whitelist Clerk/Supabase/Vercel)
+  - HSTS preload (max-age=2 ans, includeSubDomains) — anti-downgrade SSL
+  - COOP (same-origin) — isolation contexte navigateur
+  - CORP (same-origin) — bloque lectures cross-origin
+  - Permissions-Policy — camera, micro, geo, USB, bluetooth, serial désactivés
+  - X-Content-Type-Options, X-Frame-Options, X-XSS-Protection
+  - Cache-Control no-store sur dashboard/API (données sensibles non cachées)
+- **Chiffrement application (anti-proxy Burp Suite/mitmproxy)** :
+  - `lib/crypto.ts` — AES-256-GCM via Web Crypto API + PBKDF2 key derivation
+  - Payloads sensibles chiffrés côté client → illisibles même si interceptés
+  - HMAC-SHA256 pour intégrité des requêtes
+- **Signature des requêtes API (anti-tampering)** :
+  - `lib/api-security.ts` — HMAC signing + timestamp validation (30s tolerance)
+  - Body hash SHA-256 inclus dans signature → modification = rejet
+  - `secureFetch()` wrapper pour les appels sensibles (admin, mutations)
+- **Decoy headers** — headers trompeurs (nginx, Varnish, Cloudflare) pour mislead Wappalyzer
+- **Limites honnêtes** : SSL pinning impossible en web (navigateurs uniquement), HPKP déprécié depuis 2019. Ces mesures élèvent significativement la barre mais ne sont pas absolues contre un attaquant avec contrôle total du device.
 
 ---
 
@@ -197,6 +214,17 @@ Déployé automatiquement sur **Vercel** à chaque push sur `master`.
 
 ## Historique des versions
 
+### v0.8.0 — 2026-02-07 (Session 7)
+- Messages temps réel : smart polling 3s (messages) + 10s (conversations) comme fallback Supabase Realtime
+- Security hardening complet :
+  - Headers : COOP, CORP, HSTS preload, CSP strict, Permissions-Policy étendu
+  - `lib/crypto.ts` : AES-256-GCM + PBKDF2 + HMAC-SHA256 (Web Crypto API)
+  - `lib/api-security.ts` : request signing + timestamp anti-replay + body hash anti-tampering
+  - `secureFetch()` wrapper pour appels API sensibles
+  - Cache-Control no-store sur dashboard/API routes
+- Accessibilité : 17 `<div onClick>` corrigés avec `role="presentation"` / `role="dialog"` + `aria-modal`
+- SonarCloud Reliability : correction issues HIGH/MEDIUM
+
 ### v0.7.0 — 2026-02-07 (Session 5–6)
 - ESLint : 26 erreurs → 0 erreurs
 - CI/CD GitHub Actions (lint, type check, build) — **CI PASS ✅**
@@ -250,13 +278,16 @@ Déployé automatiquement sur **Vercel** à chaque push sur `master`.
 
 ---
 
-## Commits (67 total)
+## Commits (70 total)
 
 <details>
 <summary>Historique complet</summary>
 
 | Date | Hash | Description |
 |------|------|-------------|
+| 2026-02-07 | `c591cf6` | security: hardened headers, AES-256-GCM crypto, HMAC API signing, a11y fixes |
+| 2026-02-07 | `65ef873` | fix: realtime messages via smart polling fallback (3s messages, 10s conversations) |
+| 2026-02-07 | `90e9a61` | docs: update README with admin actions verification |
 | 2026-02-07 | `34072d8` | fix: upgrade sonarqube-scan-action to v6 + create SonarCloud project |
 | 2026-02-07 | `72c9390` | fix: add contents:read permission to sonarcloud workflow |
 | 2026-02-07 | `5d04c24` | ci: trigger workflows with configured secrets |
