@@ -110,6 +110,8 @@ export default function MessagesPage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const messagesRef = useRef<Message[]>([]);
+  const currentUserIdRef = useRef<string | null>(null);
   
   // Max file size: 10MB
   const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -119,12 +121,17 @@ export default function MessagesPage() {
   };
 
   useEffect(() => {
+    messagesRef.current = messages;
     scrollToBottom();
   }, [messages]);
 
   useEffect(() => {
     if (user) {
       loadConversations();
+
+      // Poll conversation list every 10s for unread counts & new conversations
+      const convPoll = setInterval(() => loadConversations(true), 10000);
+      return () => clearInterval(convPoll);
     }
   }, [user]);
 
@@ -143,6 +150,7 @@ export default function MessagesPage() {
     if (selectedConversation) {
       loadMessages(selectedConversation);
       
+      // Realtime subscription (fast path — may not fire if RLS blocks WebSocket)
       const channel = supabase
         .channel(`messages:${selectedConversation}`)
         .on(
@@ -154,7 +162,6 @@ export default function MessagesPage() {
             filter: `conversation_id=eq.${selectedConversation}`,
           },
           async (payload) => {
-            // Fetch complete message with sender info
             const { data: fullMessage } = await supabase
               .from("messages")
               .select(`
@@ -166,7 +173,6 @@ export default function MessagesPage() {
             
             if (fullMessage) {
               setMessages((prev) => {
-                // Avoid duplicates
                 if (prev.some(m => m.id === fullMessage.id)) return prev;
                 return [...prev, fullMessage as Message];
               });
@@ -176,8 +182,57 @@ export default function MessagesPage() {
         )
         .subscribe();
 
+      // Polling fallback: fetch new messages every 3 seconds
+      const pollInterval = setInterval(async () => {
+        const lastMsg = messagesRef.current[messagesRef.current.length - 1];
+        if (!lastMsg) return;
+
+        try {
+          const { data, error } = await supabase
+            .from("messages")
+            .select(`
+              *,
+              sender:users(first_name, last_name, avatar_url, role)
+            `)
+            .eq("conversation_id", selectedConversation)
+            .gt("created_at", lastMsg.created_at)
+            .order("created_at", { ascending: true });
+
+          if (!error && data && data.length > 0) {
+            setMessages(prev => {
+              const newMsgs = data.filter(
+                (m: { id: string }) => !prev.some(p => p.id === m.id)
+              );
+              if (newMsgs.length === 0) return prev;
+              return [...prev, ...newMsgs as Message[]];
+            });
+            scrollToBottom();
+
+            // Mark incoming messages as read
+            const uid = currentUserIdRef.current;
+            if (uid) {
+              const unreadIds = data
+                .filter((m: { sender_id: string; is_read: boolean }) => m.sender_id !== uid && !m.is_read)
+                .map((m: { id: string }) => m.id);
+              if (unreadIds.length > 0) {
+                await supabase
+                  .from("messages")
+                  .update({ is_read: true })
+                  .in("id", unreadIds);
+              }
+            }
+
+            // Refresh conversation list to update unread counts
+            loadConversations(true);
+          }
+        } catch {
+          // Silently ignore polling errors
+        }
+      }, 3000);
+
       return () => {
         supabase.removeChannel(channel);
+        clearInterval(pollInterval);
       };
     }
   }, [selectedConversation]);
@@ -198,8 +253,8 @@ export default function MessagesPage() {
     }
   };
 
-  const loadConversations = async () => {
-    setIsLoading(true);
+  const loadConversations = async (silent = false) => {
+    if (!silent) setIsLoading(true);
     try {
       // Ensure clerk_id is set for RLS
       await ensureClerkId(user?.id);
@@ -220,6 +275,7 @@ export default function MessagesPage() {
       const currentUserIdValue = userData.id;
       const userRole = userData.role;
       setCurrentUserId(currentUserIdValue);
+      currentUserIdRef.current = currentUserIdValue;
       setCurrentUserRole(userRole);
 
       // Load staff list for admin assignment
@@ -288,7 +344,7 @@ export default function MessagesPage() {
       }
       setConversations([]);
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
 
