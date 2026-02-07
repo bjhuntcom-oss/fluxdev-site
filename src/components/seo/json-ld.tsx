@@ -69,11 +69,9 @@ export function WebsiteJsonLd() {
 export function ServiceJsonLd({ 
   name, 
   description,
-  locale = "fr"
 }: { 
   name: string; 
   description: string;
-  locale?: string;
 }) {
   const jsonLd = {
     "@context": "https://schema.org",

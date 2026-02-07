@@ -15,13 +15,10 @@ import {
   MessageSquare,
   Archive,
   ArchiveRestore,
-  Filter,
-  Image as ImageIcon,
   FileText,
   Download,
   Loader2
 } from "lucide-react";
-import Image from "next/image";
 import { supabase, ensureClerkId } from "@/lib/supabase/client";
 import { sanitizeInput } from "@/lib/security";
 import { format } from "date-fns";
@@ -390,7 +387,6 @@ export default function MessagesPage() {
 
     // If user doesn't exist, sync from Clerk
     if (!userData && user) {
-      console.log("User not found, syncing from Clerk...");
       try {
         const response = await fetch("/api/user/sync", {
           method: "POST",

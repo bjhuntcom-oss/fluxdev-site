@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, MessageSquare, FileText, FolderKanban, Check, X } from "lucide-react";
+import { Bell, MessageSquare, FileText, FolderKanban, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { format } from "date-fns";
 import { fr, enUS } from "date-fns/locale";

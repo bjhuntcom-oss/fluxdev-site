@@ -13,11 +13,9 @@ import {
   FolderKanban,
   Settings,
   Trash2,
-  Calendar,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { subDays } from "date-fns";
-import { fr, enUS } from "date-fns/locale";
 import { useLocale } from "@/contexts";
 
 interface AuditLog {
@@ -44,7 +42,6 @@ interface AnalyticsData {
 
 export default function AnalyticsPage() {
   const { locale, t } = useLocale();
-  const dateFnsLocale = locale === 'fr' ? fr : enUS;
   const [data, setData] = useState<AnalyticsData>({
     totalPageViews: 0,
     uniqueVisitors: 0,

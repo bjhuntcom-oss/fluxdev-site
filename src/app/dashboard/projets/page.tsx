@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
-import { Folder, Plus, Calendar, Users, ExternalLink, MoreVertical, Clock, Trash2, Edit, Filter } from 'lucide-react';
+import { Folder, Plus, Calendar, ExternalLink, MoreVertical, Clock, Filter } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
@@ -34,7 +34,6 @@ export default function ProjetsPage() {
   const [newProject, setNewProject] = useState({ name: '', description: '' });
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [editProject, setEditProject] = useState<Project | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {

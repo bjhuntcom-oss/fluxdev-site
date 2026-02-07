@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, Clock, AlertCircle, CheckCircle, XCircle, Filter, RefreshCw } from 'lucide-react';
+import { Activity, Clock, AlertCircle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';

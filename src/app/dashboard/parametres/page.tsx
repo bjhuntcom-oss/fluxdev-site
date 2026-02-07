@@ -8,12 +8,6 @@ import { useLocale } from "@/contexts";
 import { useToast } from "@/components/ui/Toast";
 import { useLogAction } from "@/contexts/ActivityLoggerContext";
 
-interface UserPreferences {
-  notifications_email: boolean;
-  notifications_messages: boolean;
-  notifications_updates: boolean;
-}
-
 export default function SettingsPage() {
   const { user } = useUser();
   const { openUserProfile } = useClerk();
@@ -21,7 +15,7 @@ export default function SettingsPage() {
   const { showToast } = useToast();
   const logAction = useLogAction();
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");

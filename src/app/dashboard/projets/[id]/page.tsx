@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { 
   ArrowLeft, Calendar, Clock, Edit, Trash2, CheckCircle, AlertCircle, Archive,
-  Plus, Check, Circle, Target, Euro, CalendarDays, ListTodo, X, GripVertical
+  Plus, Circle, Target, Euro, CalendarDays, ListTodo, X
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
@@ -48,7 +48,7 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [unauthorized, setUnauthorized] = useState(false);
   const [loadError, setLoadError] = useState(false);
-  const [userRole, setUserRole] = useState<string>('user');
+  const [, setUserRole] = useState<string>('user');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ 
     title: '', 

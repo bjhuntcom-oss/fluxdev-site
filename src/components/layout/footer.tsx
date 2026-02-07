@@ -4,26 +4,6 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { useLocale } from "@/contexts";
 
-const services = [
-  { label: "Développement Web", href: "/services/developpement-web" },
-  { label: "Applications Mobile", href: "/services/applications-mobile" },
-  { label: "Solutions SaaS", href: "/services/solutions-saas" },
-  { label: "Cybersécurité", href: "/services/cybersecurite" },
-  { label: "Design UI/UX", href: "/services/design-ui-ux" },
-];
-
-const company = [
-  { label: "Projets", href: "/projets" },
-  { label: "Équipe", href: "/equipe" },
-  { label: "Contact", href: "/contact" },
-];
-
-const legal = [
-  { label: "Mentions légales", href: "/mentions-legales" },
-  { label: "Confidentialité", href: "/confidentialite" },
-  { label: "CGV", href: "/cgv" },
-];
-
 export function Footer() {
   const { t, locale } = useLocale();
   

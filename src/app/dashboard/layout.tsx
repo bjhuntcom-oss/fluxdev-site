@@ -49,7 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [userStatus, setUserStatus] = useState<string | null>(null);
   const [supabaseUserId, setSupabaseUserId] = useState<string | null>(null);
   const [roleLoaded, setRoleLoaded] = useState(false);
-  const { isSynced, isLoading: isSyncing, userData: syncedUser, error: syncError } = useUserSync();
+  const { isLoading: isSyncing, userData: syncedUser } = useUserSync();
   const { logAction } = useActivityLogger(supabaseUserId);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);

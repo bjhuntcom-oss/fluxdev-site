@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, User, Calendar, Filter, RefreshCw, Search } from 'lucide-react';
+import { Activity, Filter, RefreshCw, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';

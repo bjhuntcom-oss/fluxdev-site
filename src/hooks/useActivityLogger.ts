@@ -21,7 +21,7 @@ interface LogActionParams {
 export function useActivityLogger(userId?: string | null) {
   const pathname = usePathname();
   const lastLoggedPath = useRef<string | null>(null);
-  const pageEnteredAt = useRef<number>(Date.now());
+  const pageEnteredAt = useRef<number>(0);
 
   // Auto-track page views on navigation
   useEffect(() => {

@@ -38,9 +38,10 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhooks(.*)',
 ]);
 
-const isAdminRoute = createRouteMatcher(['/dashboard/admin(.*)']);
-const isStaffRoute = createRouteMatcher(['/dashboard/staff(.*)']);
-const isDevRoute = createRouteMatcher(['/dashboard/dev(.*)']);
+// Route matchers kept for future server-side role enforcement
+// const isAdminRoute = createRouteMatcher(['/dashboard/admin(.*)']);
+// const isStaffRoute = createRouteMatcher(['/dashboard/staff(.*)']);
+// const isDevRoute = createRouteMatcher(['/dashboard/dev(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {

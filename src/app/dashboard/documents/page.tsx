@@ -250,7 +250,7 @@ export default function DocumentsPage() {
         setUploadProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("documents")
         .upload(fileName, selectedFile);
 

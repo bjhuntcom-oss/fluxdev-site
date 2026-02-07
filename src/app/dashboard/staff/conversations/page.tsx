@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
-import { MessageSquare, Search, Clock, CheckCircle, AlertCircle, User } from 'lucide-react';
+import { MessageSquare, Search, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
