@@ -13,7 +13,6 @@ import {
   BarChart3,
   Shield,
   Code,
-  Bell,
   Menu,
   X,
   ChevronRight,
@@ -22,7 +21,6 @@ import {
   LogOut,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { UserButton } from "@clerk/nextjs";
 import { useUserSync } from "@/hooks/useUserSync";
 import { useActivityLogger } from "@/hooks/useActivityLogger";
 import { supabase, initClerkId } from "@/lib/supabase/client";
@@ -53,6 +51,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [roleLoaded, setRoleLoaded] = useState(false);
   const { isSynced, isLoading: isSyncing, userData: syncedUser, error: syncError } = useUserSync();
   const { logAction } = useActivityLogger(supabaseUserId);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close user menu on click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [userMenuOpen]);
+
+  const userInitials = user?.firstName && user?.lastName
+    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+    : user?.firstName?.[0]?.toUpperCase() || '?';
 
   const navItems: NavItem[] = [
     { label: t("dash.nav.dashboard"), href: "/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -170,15 +187,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {t("dash.blocked.contact")}
           </a>
         </div>
-        <div className="mt-4">
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: "w-8 h-8",
-              },
-            }}
-          />
-        </div>
+        <button
+          onClick={() => signOut({ redirectUrl: '/' })}
+          className="mt-4 inline-flex items-center gap-2 px-4 py-2 border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-colors text-xs"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          {t('dash.nav.logout')}
+        </button>
       </div>
     );
   }
@@ -196,15 +211,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {t("dash.blocked.pending.desc")}
           </p>
         </div>
-        <div className="mt-4">
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: "w-8 h-8",
-              },
-            }}
-          />
-        </div>
+        <button
+          onClick={() => signOut({ redirectUrl: '/' })}
+          className="mt-4 inline-flex items-center gap-2 px-4 py-2 border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-colors text-xs"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          {t('dash.nav.logout')}
+        </button>
       </div>
     );
   }
@@ -313,29 +326,87 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
 
           {/* User Section */}
-          <div className="px-4 py-4 border-t border-white/[0.06]">
-            <div className="flex items-center gap-3">
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "w-8 h-8",
-                  },
-                }}
-              />
-              <div className="flex-1 min-w-0">
+          <div className="px-4 py-4 border-t border-white/[0.06] relative" ref={userMenuRef}>
+            <button
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="w-full flex items-center gap-3 hover:bg-white/[0.03] rounded px-1 py-1.5 transition-all"
+            >
+              {user?.imageUrl ? (
+                <img
+                  src={user.imageUrl}
+                  alt={user.firstName || ''}
+                  className="w-8 h-8 rounded-full object-cover border border-white/10"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70 text-xs font-medium border border-white/10">
+                  {userInitials}
+                </div>
+              )}
+              <div className="flex-1 min-w-0 text-left">
                 <p className="text-white/90 text-sm font-light truncate">
                   {user?.firstName || user?.emailAddresses[0]?.emailAddress}
                 </p>
                 <p className="text-white/40 text-[10px] uppercase tracking-wider">{userRole}</p>
               </div>
-              <button
-                onClick={() => signOut({ redirectUrl: '/' })}
-                className="p-2 text-white/30 hover:text-red-400 hover:bg-white/[0.04] transition-all rounded"
-                title={t('dash.nav.logout')}
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
+              <ChevronRight className={`w-3.5 h-3.5 text-white/30 transition-transform ${userMenuOpen ? 'rotate-90' : ''}`} />
+            </button>
+
+            {/* User Dropdown Modal */}
+            {userMenuOpen && (
+              <div className="absolute bottom-full left-3 right-3 mb-2 bg-[#111] border border-white/10 rounded-lg shadow-2xl shadow-black/50 overflow-hidden z-50">
+                {/* User info header */}
+                <div className="px-4 py-3 border-b border-white/[0.06]">
+                  <div className="flex items-center gap-3">
+                    {user?.imageUrl ? (
+                      <img
+                        src={user.imageUrl}
+                        alt={user.firstName || ''}
+                        className="w-10 h-10 rounded-full object-cover border border-white/10"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 text-sm font-medium border border-white/10">
+                        {userInitials}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white/90 text-sm font-medium truncate">
+                        {user?.firstName} {user?.lastName}
+                      </p>
+                      <p className="text-white/40 text-xs truncate">
+                        {user?.emailAddresses[0]?.emailAddress}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <span className="inline-flex items-center px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium rounded-full bg-white/[0.06] text-white/50 border border-white/[0.08]">
+                      {userRole}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Menu items */}
+                <div className="py-1">
+                  <button
+                    onClick={() => { setUserMenuOpen(false); router.push('/dashboard/parametres'); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/60 hover:text-white hover:bg-white/[0.04] transition-all"
+                  >
+                    <Settings className="w-4 h-4" />
+                    {t('dash.nav.settings')}
+                  </button>
+                </div>
+
+                {/* Logout */}
+                <div className="border-t border-white/[0.06] py-1">
+                  <button
+                    onClick={() => signOut({ redirectUrl: '/' })}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400/70 hover:text-red-400 hover:bg-red-500/[0.06] transition-all"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    {t('dash.nav.logout')}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </aside>
