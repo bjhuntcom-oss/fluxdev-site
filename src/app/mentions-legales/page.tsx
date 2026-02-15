@@ -20,7 +20,7 @@ const sectionsData = {
   {
     title: "Directeur de la publication",
     content: [
-      "Nom : ADATCHAHOUE Destin",
+      "Nom : ATCHAHOUE Destin",
       "Qualité : CEO & Fondateur",
       "Email : contact@fluxdev.io",
     ],
@@ -74,7 +74,7 @@ const sectionsData = {
   ],
   en: [
     { title: "Website Publisher", content: ["FluxDev Studio", "Legal form: [To complete]", "Share capital: [To complete]", "Headquarters: Cotonou, Benin", "Tax ID: [To complete]", "Business Registration: [To complete]", "Email: contact@fluxdev.io"] },
-    { title: "Publication Director", content: ["Name: ADATCHAHOUE Destin", "Position: CEO & Founder", "Email: contact@fluxdev.io"] },
+    { title: "Publication Director", content: ["Name: ATCHAHOUE Destin", "Position: CEO & Founder", "Email: contact@fluxdev.io"] },
     { title: "Hosting", content: ["The website is hosted by:", "Vercel Inc.", "440 N Barranca Ave #4133", "Covina, CA 91723, USA", "https://vercel.com"] },
     { title: "Intellectual Property", content: ["All content on this site (texts, images, videos, logos, icons, sounds, software, etc.) is the exclusive property of FluxDev Studio or its partners and is protected by Beninese and international intellectual property laws.", "Any reproduction, representation, modification, publication, transmission, distortion, total or partial of the site or its content, by any means whatsoever, and on any medium whatsoever is prohibited without prior written authorization from FluxDev Studio."] },
     { title: "Personal Data", content: ["Information collected on this site is recorded in a computerized file by FluxDev Studio for customer relationship management and commercial prospecting operations.", "In accordance with Law No. 2017-20 of April 20, 2018 on the Digital Code in the Republic of Benin, you have the right to access, rectify, delete and oppose data concerning you.", "To exercise these rights, contact us at: contact@fluxdev.io"] },

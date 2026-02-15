@@ -9,14 +9,14 @@ import { useLocale } from "@/contexts";
 const teamData = {
   fr: [
   {
-    name: "ADATCHAHOUE Destin",
+    name: "ATCHAHOUE Destin",
     role: "CEO & Lead Security Researcher",
     initials: "AD",
-    image: "/team/destin-adatchahoue.webp",
+    image: "/team/destin-atchahoue.webp",
     expertise: ["Cybersécurité", "Pentest", "Architecture sécurisée"],
     bio: "Expert en sécurité offensive et défensive avec plus de 8 ans d'expérience. Spécialisé dans l'audit de sécurité, les tests d'intrusion et la mise en place de SOC.",
     quote: "La sécurité n'est pas une option, c'est une fondation.",
-    portfolio: "https://atchahouedestin.com/",
+    portfolio: "https://atchahouedestin.com",
     linkedin: "https://bj.linkedin.com/in/destin-atchahoue-8a7018375",
     email: "Firstcyberseclover@gmail.com"
   },
@@ -24,6 +24,7 @@ const teamData = {
     name: "Hector SEDO",
     role: "Co-Fondateur & Développeur Full-Stack",
     initials: "HS",
+    image: "/team/hector-sedo.webp",
     expertise: ["React/Next.js", "Node.js", "Cloud AWS/GCP"],
     bio: "Développeur passionné par les architectures scalables et les interfaces utilisateur performantes. Expert React et écosystème JavaScript moderne.",
     quote: "Le code propre est un acte de respect envers les futurs développeurs.",
@@ -35,6 +36,7 @@ const teamData = {
     name: "Jefferson ADANNOU-ZONON",
     role: "Co-Fondateur & Directeur Technique",
     initials: "JA",
+    image: "/team/jefferson-adannou-zonon.webp",
     expertise: ["Architecture IA", "Systèmes distribués", "DevOps"],
     bio: "Architecte logiciel spécialisé dans les systèmes d'intelligence artificielle et les infrastructures cloud. Responsable de l'écosystème des 1500+ agents IA.",
     quote: "L'IA n'est pas la pour remplacer, mais pour amplifier le potentiel humain.",
@@ -55,9 +57,9 @@ const teamData = {
   },
   ],
   en: [
-    { name: "ADATCHAHOUE Destin", role: "CEO & Lead Security Researcher", initials: "AD", image: "/team/destin-adatchahoue.webp", expertise: ["Cybersecurity", "Pentest", "Secure Architecture"], bio: "Offensive and defensive security expert with over 8 years of experience. Specialized in security audits, penetration testing and SOC implementation.", quote: "Security is not an option, it's a foundation.", portfolio: "https://atchahouedestin.com/", linkedin: "https://bj.linkedin.com/in/destin-atchahoue-8a7018375", email: "Firstcyberseclover@gmail.com" },
-    { name: "Hector SEDO", role: "Co-Founder & Full-Stack Developer", initials: "HS", expertise: ["React/Next.js", "Node.js", "Cloud AWS/GCP"], bio: "Developer passionate about scalable architectures and high-performance user interfaces. React expert and modern JavaScript ecosystem.", quote: "Clean code is an act of respect towards future developers.", portfolio: "/portfolio/hector", linkedin: "#", email: "hector@fluxdev.io" },
-    { name: "Jefferson ADANNOU-ZONON", role: "Co-Founder & Technical Director", initials: "JA", expertise: ["AI Architecture", "Distributed Systems", "DevOps"], bio: "Software architect specialized in artificial intelligence systems and cloud infrastructures. Responsible for the 1500+ AI agents ecosystem.", quote: "AI is not here to replace, but to amplify human potential.", portfolio: "/portfolio/jefferson", linkedin: "#", email: "jefferson@fluxdev.io" },
+    { name: "ATCHAHOUE Destin", role: "CEO & Lead Security Researcher", initials: "AD", image: "/team/destin-atchahoue.webp", expertise: ["Cybersecurity", "Pentest", "Secure Architecture"], bio: "Offensive and defensive security expert with over 8 years of experience. Specialized in security audits, penetration testing and SOC implementation.", quote: "Security is not an option, it's a foundation.", portfolio: "https://atchahouedestin.com", linkedin: "https://bj.linkedin.com/in/destin-atchahoue-8a7018375", email: "Firstcyberseclover@gmail.com" },
+    { name: "Hector SEDO", role: "Co-Founder & Full-Stack Developer", initials: "HS", image: "/team/hector-sedo.webp", expertise: ["React/Next.js", "Node.js", "Cloud AWS/GCP"], bio: "Developer passionate about scalable architectures and high-performance user interfaces. React expert and modern JavaScript ecosystem.", quote: "Clean code is an act of respect towards future developers.", portfolio: "/portfolio/hector", linkedin: "#", email: "hector@fluxdev.io" },
+    { name: "Jefferson ADANNOU-ZONON", role: "Co-Founder & Technical Director", initials: "JA", image: "/team/jefferson-adannou-zonon.webp", expertise: ["AI Architecture", "Distributed Systems", "DevOps"], bio: "Software architect specialized in artificial intelligence systems and cloud infrastructures. Responsible for the 1500+ AI agents ecosystem.", quote: "AI is not here to replace, but to amplify human potential.", portfolio: "/portfolio/jefferson", linkedin: "#", email: "jefferson@fluxdev.io" },
     { name: "Welman GBAGUIDI", role: "Co-Founder & Mobile/IoT Developer", initials: "WG", expertise: ["React Native", "iOS/Android", "Embedded Systems"], bio: "Cross-platform mobile development and IoT systems specialist. Expert in performance optimization and embedded firmware.", quote: "Technology must be invisible to be truly effective.", portfolio: "/portfolio/welman", linkedin: "#", email: "welman@fluxdev.io" },
   ],
 };
@@ -142,7 +144,7 @@ export default function TeamPage() {
                           src={member.image}
                           alt={member.name}
                           fill
-                          className="object-cover object-top grayscale opacity-90 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700 select-none pointer-events-none"
+                          className={`grayscale opacity-90 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700 select-none pointer-events-none ${member.name === "Hector SEDO" ? "object-contain scale-130" : "object-contain"}`}
                           draggable={false}
                           priority={index === 0}
                         />

@@ -245,18 +245,25 @@ const translations: Record<Locale, Record<string, string>> = {
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof window === "undefined") return "fr";
+  const [locale, setLocaleState] = useState<Locale>("fr");
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
     const savedLocale = localStorage.getItem("fluxdev-locale") as Locale | null;
     if (savedLocale && (savedLocale === "fr" || savedLocale === "en")) {
-      return savedLocale;
+      setLocaleState(savedLocale);
+    } else {
+      const browserLocale = navigator.language.startsWith("fr") ? "fr" : "en";
+      setLocaleState(browserLocale);
     }
-    return navigator.language.startsWith("fr") ? "fr" : "en";
-  });
+    setIsHydrated(true);
+  }, []);
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);
-    localStorage.setItem("fluxdev-locale", newLocale);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("fluxdev-locale", newLocale);
+    }
   };
 
   const t = (key: string): string => {
