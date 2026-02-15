@@ -144,7 +144,7 @@ export default function TeamPage() {
                           src={member.image}
                           alt={member.name}
                           fill
-                          className={`grayscale opacity-90 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700 select-none pointer-events-none ${member.name === "Hector SEDO" ? "object-contain scale-130" : "object-contain"}`}
+                          className={`grayscale opacity-90 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700 select-none pointer-events-none ${member.name === "Hector SEDO" ? "object-cover object-[50%_45%]" : "object-contain"}`}
                           draggable={false}
                           priority={index === 0}
                         />
