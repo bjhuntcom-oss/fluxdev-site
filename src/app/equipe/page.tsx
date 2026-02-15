@@ -141,7 +141,7 @@ export default function TeamPage() {
                     {member.image ? (
                       <div className="absolute inset-0 overflow-hidden">
                         <Image
-                          src={member.name === "Hector SEDO" ? `${member.image}?v=2026021502` : member.image}
+                          src={member.image}
                           alt={member.name}
                           fill
                           className={`grayscale opacity-90 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700 select-none pointer-events-none ${member.name === "Hector SEDO" ? "object-cover object-[50%_45%]" : "object-contain"}`}
