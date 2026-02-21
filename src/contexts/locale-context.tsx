@@ -118,7 +118,6 @@ const translations: Record<Locale, Record<string, string>> = {
     "footer.response": "Réponse sous 24h",
     "footer.online": "En ligne",
     "footer.rights": "2026 FluxDev. Tous droits réservés.",
-    "footer.ifu": "IFU: [À compléter]",
     "footer.location": "Cotonou, Bénin",
     "footer.payments": "Paiements sécurisés",
     
@@ -232,7 +231,6 @@ const translations: Record<Locale, Record<string, string>> = {
     "footer.response": "Response within 24h",
     "footer.online": "Online",
     "footer.rights": "2026 FluxDev. All rights reserved.",
-    "footer.ifu": "IFU: [To complete]",
     "footer.location": "Cotonou, Benin",
     "footer.payments": "Secure payments",
     

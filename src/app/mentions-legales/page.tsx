@@ -8,13 +8,10 @@ const sectionsData = {
   {
     title: "Éditeur du site",
     content: [
-      "FluxDev Studio",
-      "Forme juridique : [À compléter]",
-      "Capital social : [À compléter]",
-      "Siège social : Cotonou, Bénin",
-      "IFU : [À compléter]",
-      "RCCM : [À compléter]",
+      "FluxDev Studio, agence de développement digital et solutions IA.",
+      "Siège social : Cotonou, République du Bénin",
       "Email : contact@fluxdev.io",
+      "Téléphone : +229 XX XX XX XX",
     ],
   },
   {
@@ -73,7 +70,7 @@ const sectionsData = {
   },
   ],
   en: [
-    { title: "Website Publisher", content: ["FluxDev Studio", "Legal form: [To complete]", "Share capital: [To complete]", "Headquarters: Cotonou, Benin", "Tax ID: [To complete]", "Business Registration: [To complete]", "Email: contact@fluxdev.io"] },
+    { title: "Website Publisher", content: ["FluxDev Studio, digital development agency and AI solutions.", "Headquarters: Cotonou, Republic of Benin", "Email: contact@fluxdev.io", "Phone: +229 XX XX XX XX"] },
     { title: "Publication Director", content: ["Name: ATCHAHOUE Destin", "Position: CEO & Founder", "Email: contact@fluxdev.io"] },
     { title: "Hosting", content: ["The website is hosted by:", "Vercel Inc.", "440 N Barranca Ave #4133", "Covina, CA 91723, USA", "https://vercel.com"] },
     { title: "Intellectual Property", content: ["All content on this site (texts, images, videos, logos, icons, sounds, software, etc.) is the exclusive property of FluxDev Studio or its partners and is protected by Beninese and international intellectual property laws.", "Any reproduction, representation, modification, publication, transmission, distortion, total or partial of the site or its content, by any means whatsoever, and on any medium whatsoever is prohibited without prior written authorization from FluxDev Studio."] },

@@ -181,8 +181,6 @@ export function Footer() {
             <div className="flex flex-wrap items-center gap-4 lg:gap-8 text-xs text-white/70">
               <span>{t("footer.rights")}</span>
               <span className="hidden lg:inline">|</span>
-              <span>{t("footer.ifu")}</span>
-              <span className="hidden lg:inline">|</span>
               <span>{t("footer.location")}</span>
             </div>
             
