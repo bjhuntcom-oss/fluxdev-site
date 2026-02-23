@@ -12,8 +12,9 @@ interface SyncedUser {
   last_name?: string;
 }
 
-const SYNC_TIMEOUT_MS = 8000;
-const MAX_RETRIES = 2;
+const GET_TIMEOUT_MS = 5000;
+const POST_TIMEOUT_MS = 6000;
+const MAX_RETRIES = 1;
 
 async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
   const controller = new AbortController();
@@ -38,7 +39,7 @@ export function useUserSync() {
     try {
       // Strategy: GET first (fast path for returning users), POST only if needed
       // GET is lightweight: just a Supabase SELECT, no Clerk API call
-      const getRes = await fetchWithTimeout('/api/user/sync', {}, SYNC_TIMEOUT_MS);
+      const getRes = await fetchWithTimeout('/api/user/sync', {}, GET_TIMEOUT_MS);
 
       if (getRes.ok) {
         const getData = await getRes.json();
@@ -50,8 +51,15 @@ export function useUserSync() {
         }
       }
 
+      // If GET returned 500 (server error, not "user not found"), skip POST
+      // The server is likely down (e.g. Supabase unreachable)
+      if (getRes.status === 500) {
+        console.warn('Sync GET returned 500, skipping POST');
+        return false;
+      }
+
       // User not found in Supabase — do full POST (upsert with Clerk data)
-      const postRes = await fetchWithTimeout('/api/user/sync', { method: 'POST' }, SYNC_TIMEOUT_MS);
+      const postRes = await fetchWithTimeout('/api/user/sync', { method: 'POST' }, POST_TIMEOUT_MS);
 
       if (postRes.ok) {
         const postData = await postRes.json();
@@ -105,8 +113,7 @@ export function useUserSync() {
         if (!success) {
           retryCount.current++;
           if (retryCount.current <= MAX_RETRIES) {
-            // Exponential backoff: 500ms, 1000ms
-            await new Promise(r => setTimeout(r, 500 * retryCount.current));
+            await new Promise(r => setTimeout(r, 300));
           }
         }
       }
