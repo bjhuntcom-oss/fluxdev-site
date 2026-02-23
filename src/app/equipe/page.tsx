@@ -213,13 +213,17 @@ export default function TeamPage() {
                   
                   {/* Actions */}
                   <div className="flex items-center gap-6 pt-4">
-                    <a
-                      href={member.linkedin}
-                      className="flex items-center gap-2 text-xs text-white/40 hover:text-white/80 transition-colors group/link"
-                    >
-                      <Linkedin className="w-4 h-4" />
-                      <span>LinkedIn</span>
-                    </a>
+                    {member.linkedin && member.linkedin !== "#" && (
+                      <a
+                        href={member.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-xs text-white/40 hover:text-white/80 transition-colors group/link"
+                      >
+                        <Linkedin className="w-4 h-4" />
+                        <span>LinkedIn</span>
+                      </a>
+                    )}
                     <a
                       href={`mailto:${member.email}`}
                       className="flex items-center gap-2 text-xs text-white/40 hover:text-white/80 transition-colors group/link"
@@ -229,6 +233,8 @@ export default function TeamPage() {
                     </a>
                     <Link
                       href={member.portfolio}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center gap-2 text-xs text-white/40 hover:text-white/80 transition-colors ml-auto"
                     >
                       <span>Portfolio</span>

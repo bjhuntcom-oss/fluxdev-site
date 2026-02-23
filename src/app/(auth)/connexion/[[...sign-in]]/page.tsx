@@ -211,7 +211,7 @@ export default function SignInPage() {
       {/* Footer */}
       <div className="absolute bottom-6 left-0 right-0 text-center">
         <p className="text-white/20 text-xs font-light tracking-wide">
-          © 2024 FluxDev. Tous droits réservés.
+          © 2026 FluxDev. Tous droits réservés.
         </p>
       </div>
     </div>
