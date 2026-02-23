@@ -11,7 +11,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/services/developpement-web",
     "/services/applications-mobile",
     "/services/solutions-saas",
+    "/services/cybersecurite",
     "/services/design-ui-ux",
+    "/mentions-legales",
+    "/confidentialite",
+    "/cgv",
   ];
 
   const projectSlugs = [

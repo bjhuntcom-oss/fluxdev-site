@@ -10,6 +10,7 @@ import { OrganizationJsonLd, WebsiteJsonLd } from "@/components/seo/json-ld";
 import { MainLayout } from "@/components/layout/main-layout";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleAnalytics } from "@/components/analytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -104,6 +105,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
         suppressHydrationWarning
       >
+        <GoogleAnalytics />
         <ClerkProvider
           localization={frFR}
           appearance={{
