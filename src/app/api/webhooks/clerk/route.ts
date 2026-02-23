@@ -46,15 +46,36 @@ export async function POST(req: Request) {
       const primaryEmail = email_addresses[0]?.email_address;
 
       if (primaryEmail) {
-        // Check if user already exists (from previous failed signup or sync)
-        const { data: existing } = await supabase
+        // Check if user already exists by clerk_id (sync route may have created first)
+        const { data: existingByClerkId } = await supabase
+          .from('users')
+          .select('id')
+          .eq('clerk_id', id)
+          .maybeSingle();
+
+        if (existingByClerkId) {
+          // Already created by sync route — just update profile data
+          await supabase
+            .from('users')
+            .update({
+              first_name: first_name || null,
+              last_name: last_name || null,
+              avatar_url: image_url || null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existingByClerkId.id);
+          break;
+        }
+
+        // Check if user exists by email (re-signup or orphan row)
+        const { data: existingByEmail } = await supabase
           .from('users')
           .select('id')
           .eq('email', primaryEmail)
           .maybeSingle();
 
-        if (existing) {
-          // Update existing user with new clerk_id (re-signup scenario)
+        if (existingByEmail) {
+          // Update existing user with new clerk_id
           const { error } = await supabase
             .from('users')
             .update({
@@ -64,7 +85,7 @@ export async function POST(req: Request) {
               avatar_url: image_url || null,
               updated_at: new Date().toISOString(),
             })
-            .eq('id', existing.id);
+            .eq('id', existingByEmail.id);
 
           if (error) {
             console.error('Error updating existing user on create:', error);
@@ -79,10 +100,18 @@ export async function POST(req: Request) {
             avatar_url: image_url || null,
             role: 'user',
             status: 'active',
-
+            notifications_email: true,
+            notifications_messages: true,
+            notifications_updates: true,
           });
 
           if (error) {
+            // Race condition with sync route — check if user was created in the meantime
+            if (error.code === '23505') {
+              // Unique constraint violation — user already exists, safe to ignore
+              console.log('Webhook user.created: user already exists (race condition), ignoring');
+              break;
+            }
             console.error('Error creating user:', error);
             return new Response('Error creating user', { status: 500 });
           }

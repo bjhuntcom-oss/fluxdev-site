@@ -1,8 +1,9 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import { createAdminSupabaseClient, createServerSupabaseClient } from '@/lib/supabase/server';
+import { createAdminSupabaseClient } from '@/lib/supabase/server';
 
-export async function POST() {
+// GET: Fast path — check if user exists in Supabase (no Clerk API call)
+export async function GET() {
   try {
     const { userId } = await auth();
     
@@ -10,10 +11,37 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await currentUser();
+    let supabase;
+    try {
+      supabase = createAdminSupabaseClient();
+    } catch {
+      return NextResponse.json({ exists: false, userId, reason: 'no_admin_client' });
+    }
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, clerk_id, email, first_name, last_name, avatar_url, role, status')
+      .eq('clerk_id', userId)
+      .maybeSingle();
+
+    if (error || !user) {
+      return NextResponse.json({ exists: false, userId });
+    }
+
+    return NextResponse.json({ exists: true, user });
+  } catch (error) {
+    console.error('Sync GET error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// POST: Full sync — creates or links user in Supabase using Clerk data
+export async function POST() {
+  try {
+    const { userId } = await auth();
     
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     let supabase;
@@ -24,64 +52,54 @@ export async function POST() {
       return NextResponse.json({ error: 'Service temporarily unavailable', fallback: true }, { status: 503 });
     }
 
-    const primaryEmail = user.emailAddresses[0]?.emailAddress;
-
-    // Atomic upsert: handles race condition with webhook
-    // Try to find by clerk_id first, then by email (webhook may have created with different clerk_id)
+    // Step 1: Check if user already exists by clerk_id (fast, no Clerk API call)
     const { data: existingByClerkId } = await supabase
       .from('users')
-      .select('*')
+      .select('id, clerk_id, email, first_name, last_name, avatar_url, role, status')
       .eq('clerk_id', userId)
       .maybeSingle();
 
     if (existingByClerkId) {
-      // User found by clerk_id — update and return
-      const { data: updated, error } = await supabase
-        .from('users')
-        .update({
-          email: primaryEmail,
-          first_name: user.firstName || null,
-          last_name: user.lastName || null,
-          avatar_url: user.imageUrl || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('clerk_id', userId)
-        .select('*')
-        .single();
-
-      if (error) {
-        console.error('Error updating user:', error);
-        return NextResponse.json({ error: 'Error updating user' }, { status: 500 });
-      }
-
-      return NextResponse.json({ message: 'User updated', userId, user: updated });
+      // User exists — return immediately without UPDATE
+      // Webhook handles profile updates, no need to update on every login
+      return NextResponse.json({ message: 'User exists', userId, user: existingByClerkId });
     }
 
-    // Check by email (webhook may have created the row before this runs)
+    // Step 2: User not found — need Clerk data to create/link
+    // This is the only code path that calls currentUser() (slow but necessary)
+    const user = await currentUser();
+    
+    if (!user) {
+      return NextResponse.json({ error: 'User not found in Clerk' }, { status: 404 });
+    }
+
+    const primaryEmail = user.emailAddresses[0]?.emailAddress;
+
+    // Step 3: Check by email (webhook may have created with different timing)
     if (primaryEmail) {
       const { data: existingByEmail } = await supabase
         .from('users')
-        .select('*')
+        .select('id, clerk_id, email, first_name, last_name, avatar_url, role, status')
         .eq('email', primaryEmail)
         .maybeSingle();
 
       if (existingByEmail) {
         // Link this clerk_id to existing email row
-        const { data: updated, error } = await supabase
+        const { data: updated, error: updateErr } = await supabase
           .from('users')
           .update({
             clerk_id: userId,
-            first_name: user.firstName || null,
-            last_name: user.lastName || null,
-            avatar_url: user.imageUrl || null,
+            first_name: user.firstName || existingByEmail.first_name,
+            last_name: user.lastName || existingByEmail.last_name,
+            avatar_url: user.imageUrl || existingByEmail.avatar_url,
             updated_at: new Date().toISOString(),
           })
           .eq('id', existingByEmail.id)
-          .select('*')
+          .select('id, clerk_id, email, first_name, last_name, avatar_url, role, status')
           .single();
 
-        if (error) {
-          console.error('Error linking user by email:', error);
+        if (updateErr) {
+          console.error('Error linking user by email:', updateErr);
           return NextResponse.json({ error: 'Error linking user' }, { status: 500 });
         }
 
@@ -89,8 +107,8 @@ export async function POST() {
       }
     }
 
-    // Create new user
-    const { data: created, error } = await supabase
+    // Step 4: Create new user
+    const { data: created, error: insertErr } = await supabase
       .from('users')
       .insert({
         clerk_id: userId,
@@ -100,62 +118,41 @@ export async function POST() {
         avatar_url: user.imageUrl || null,
         role: 'user',
         status: 'active',
-
         notifications_email: true,
         notifications_messages: true,
         notifications_updates: true,
       })
-      .select('*')
+      .select('id, clerk_id, email, first_name, last_name, avatar_url, role, status')
       .single();
 
-    if (error) {
+    if (insertErr) {
       // Race condition: webhook inserted between our check and insert
-      // Try one more time to find the user
+      // Try to find the user one more time by clerk_id or email
       const { data: raceUser } = await supabase
         .from('users')
-        .select('*')
-        .eq('clerk_id', userId)
+        .select('id, clerk_id, email, first_name, last_name, avatar_url, role, status')
+        .or(`clerk_id.eq.${userId}${primaryEmail ? `,email.eq.${primaryEmail}` : ''}`)
         .maybeSingle();
 
       if (raceUser) {
+        // If found by email but clerk_id doesn't match, link it
+        if (raceUser.clerk_id !== userId) {
+          await supabase
+            .from('users')
+            .update({ clerk_id: userId, updated_at: new Date().toISOString() })
+            .eq('id', raceUser.id);
+          raceUser.clerk_id = userId;
+        }
         return NextResponse.json({ message: 'User found after race', userId, user: raceUser });
       }
 
-      console.error('Error creating user:', error);
-      return NextResponse.json({ error: 'Error creating user', details: error.message }, { status: 500 });
+      console.error('Error creating user:', insertErr);
+      return NextResponse.json({ error: 'Error creating user', details: insertErr.message }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'User created', userId, user: created });
   } catch (error) {
     console.error('Sync POST error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-export async function GET() {
-  try {
-    const { userId } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Use server client (not admin) - users table has SELECT USING (true) policy
-    const supabase = await createServerSupabaseClient();
-
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('clerk_id', userId)
-      .single();
-
-    if (error || !user) {
-      return NextResponse.json({ exists: false, userId });
-    }
-
-    return NextResponse.json({ exists: true, user });
-  } catch (error) {
-    console.error('Sync GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

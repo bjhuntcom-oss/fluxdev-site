@@ -116,20 +116,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
 
       // Fallback: direct Supabase query if sync didn't return user data
-      const { data: dbUser } = await supabase
-        .from('users')
-        .select('id, role, status')
-        .eq('clerk_id', user.id)
-        .single();
+      // Retry up to 2 times with 500ms delay (webhook may still be processing)
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { data: dbUser } = await supabase
+          .from('users')
+          .select('id, role, status')
+          .eq('clerk_id', user.id)
+          .maybeSingle();
 
-      if (dbUser) {
-        setUserRole(dbUser.role || 'user');
-        setUserStatus(dbUser.status || 'active');
-        setSupabaseUserId(dbUser.id);
-      } else {
-        const role = (user.publicMetadata?.role as string) || "user";
-        setUserRole(role);
+        if (dbUser) {
+          setUserRole(dbUser.role || 'user');
+          setUserStatus(dbUser.status || 'active');
+          setSupabaseUserId(dbUser.id);
+          setRoleLoaded(true);
+          return;
+        }
+
+        // Wait before retry (webhook may still be creating the user)
+        if (attempt < 2) {
+          await new Promise(r => setTimeout(r, 800));
+        }
       }
+
+      // All retries exhausted — use Clerk metadata as last resort
+      const role = (user.publicMetadata?.role as string) || "user";
+      setUserRole(role);
       setRoleLoaded(true);
     }
     fetchUserRole();
