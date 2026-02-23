@@ -4,18 +4,11 @@ import { z } from 'zod';
 // Server-safe sanitization without DOMPurify (which requires window)
 
 export function sanitizeInput(input: string): string {
+  // Strip HTML tags to prevent XSS, but do NOT encode entities.
+  // React already escapes text content in JSX, and Supabase uses
+  // parameterized queries — double-encoding causes &#39; to display literally.
   return input
     .replace(/<[^>]*>/g, '')
-    .replace(/[<>'"&]/g, (char) => {
-      const entities: Record<string, string> = {
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#39;',
-        '"': '&quot;',
-        '&': '&amp;',
-      };
-      return entities[char] || char;
-    })
     .trim();
 }
 

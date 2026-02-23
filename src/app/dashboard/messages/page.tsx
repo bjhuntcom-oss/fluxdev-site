@@ -607,6 +607,32 @@ export default function MessagesPage() {
     setPendingFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Memoize blob URLs to avoid memory leaks from URL.createObjectURL in render
+  const blobUrlsRef = useRef<Map<File, string>>(new Map());
+  useEffect(() => {
+    const currentFiles = new Set(pendingFiles);
+    // Revoke URLs for removed files
+    for (const [file, url] of blobUrlsRef.current) {
+      if (!currentFiles.has(file)) {
+        URL.revokeObjectURL(url);
+        blobUrlsRef.current.delete(file);
+      }
+    }
+    // Create URLs for new files
+    for (const file of pendingFiles) {
+      if (!blobUrlsRef.current.has(file)) {
+        blobUrlsRef.current.set(file, URL.createObjectURL(file));
+      }
+    }
+    return () => {
+      // Cleanup all on unmount
+      for (const url of blobUrlsRef.current.values()) {
+        URL.revokeObjectURL(url);
+      }
+      blobUrlsRef.current.clear();
+    };
+  }, [pendingFiles]);
+
   // Check if file is an image
   const isImageFile = (type: string) => type.startsWith('image/');
 
@@ -1016,7 +1042,7 @@ export default function MessagesPage() {
                     >
                       {file.type.startsWith('image/') ? (
                         <img
-                          src={URL.createObjectURL(file)}
+                          src={blobUrlsRef.current.get(file) || ''}
                           alt={file.name}
                           className="w-12 h-12 object-cover rounded"
                         />
