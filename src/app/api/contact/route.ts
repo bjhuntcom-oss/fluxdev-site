@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
-      from: "FluxDev <contact@fluxdev.io>",
+      from: "FluxDev <contact@bjhunt.com>",
       to: ["bjhuntcom@gmail.com"],
       subject: `🚀 Nouveau message de contact - ${name} (${type})`,
       replyTo: email,
