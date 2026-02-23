@@ -42,13 +42,49 @@ export default function ContactPage() {
   });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    
+    // Validation basique
+    if (!form.name.trim() || !form.email.trim() || !form.type || !form.message.trim()) {
+      setError(locale === "fr" ? "Veuillez remplir tous les champs obligatoires" : "Please fill all required fields");
+      return;
+    }
+
+    // Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setError(locale === "fr" ? "Veuillez fournir un email valide" : "Please provide a valid email");
+      return;
+    }
+
     setSending(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setSending(false);
-    setSent(true);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || data.details?.[0]?.message || "Erreur lors de l'envoi");
+      }
+
+      setSent(true);
+    } catch (err) {
+      console.error("Contact form error:", err);
+      setError(err instanceof Error ? err.message : locale === "fr" ? "Une erreur est survenue" : "An error occurred");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -124,6 +160,11 @@ export default function ContactPage() {
               onSubmit={handleSubmit}
               className="max-w-3xl mx-auto"
             >
+              {error && (
+                <div className="mb-6 p-4 border border-red-500/30 bg-red-500/10 rounded-lg">
+                  <p className="text-sm text-red-400 text-center">{error}</p>
+                </div>
+              )}
               {/* Step 1: Contact Info */}
               <div className="mb-12">
                 <div className="flex items-center gap-4 mb-6">
