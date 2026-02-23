@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Développement SaaS | Plateforme Cloud Scalable | FluxDev",
+  title: "Développement SaaS | Plateforme Cloud Scalable",
   description: "Création de plateformes SaaS cloud scalables : architecture microservices, multi-tenancy, facturation automatisée, analytics intégrés. Stack moderne, sécurité renforcée, monitoring 24/7. Solutions B2B et B2C.",
   keywords: [
     "développement SaaS",

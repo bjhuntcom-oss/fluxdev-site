@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Développement Web Sur Mesure | Next.js, React, Node.js | FluxDev",
+  title: "Développement Web Sur Mesure | Next.js, React, Node.js",
   description: "Agence développement web : sites vitrine, e-commerce, applications web complexes. Stack moderne Next.js 14, React 18, TypeScript, Node.js. Optimisation SEO, performances Core Web Vitals, sécurité OWASP. Devis gratuit.",
   keywords: [
     "développement web sur mesure",

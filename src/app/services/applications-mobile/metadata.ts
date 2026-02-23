@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Développement Application Mobile | iOS, Android, React Native | FluxDev",
+  title: "Développement Application Mobile | iOS, Android, React Native",
   description: "Création d'applications mobiles natives iOS (Swift) et Android (Kotlin) ou cross-platform React Native. De la conception UX au déploiement sur App Store et Google Play. Performances optimales, sécurité renforcée.",
   keywords: [
     "développement application mobile",

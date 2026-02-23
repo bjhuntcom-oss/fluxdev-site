@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Cybersécurité & Audit Sécurité | Pentest, SOC, ISO 27001 | FluxDev",
+  title: "Cybersécurité & Audit Sécurité | Pentest, SOC, ISO 27001",
   description: "Services cybersécurité : audit de sécurité, tests d'intrusion (pentest), mise en place SOC, conformité ISO 27001, RGPD. Protection OWASP, architecture Zero Trust, monitoring 24/7. Experts certifiés en sécurité offensive et défensive.",
   keywords: [
     "cybersécurité",

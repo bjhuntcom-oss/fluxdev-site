@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Nos Projets & Réalisations | Portfolio FluxDev",
+  title: "Nos Projets & Réalisations | Portfolio",
   description: "Découvrez nos 16+ projets web, mobile, SaaS et cybersécurité : e-commerce luxe, applications bancaires, plateformes IA, audits de sécurité. Solutions sur mesure pour startups, PME et grands comptes.",
   keywords: [
     "portfolio développement web",

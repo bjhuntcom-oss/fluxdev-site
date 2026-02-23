@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact & Devis Gratuit | Audit 30min Offert | FluxDev",
+  title: "Contact & Devis Gratuit | Audit 30min Offert",
   description: "Démarrez votre projet web, mobile ou SaaS. Audit gratuit de 30 minutes, devis personnalisé sous 48h. Disponibles pour particuliers, entreprises, gouvernements et ONG. Réponse garantie sous 24h.",
   keywords: [
     "contact agence web",

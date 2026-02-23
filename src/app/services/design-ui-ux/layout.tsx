@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Design UI/UX | Maquettes Figma, Prototypes 3D | FluxDev",
+  title: "Design UI/UX | Maquettes Figma, Prototypes 3D",
   description: "Services design UI/UX : maquettes Figma professionnelles, prototypes interactifs, rendus 3D, design system complet. Expérience utilisateur optimale, accessibilité RGAA, responsive design. De la conception à l'intégration.",
   keywords: [
     "design UI/UX",

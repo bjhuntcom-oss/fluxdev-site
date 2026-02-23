@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Notre Équipe | 4 Co-Fondateurs Experts | FluxDev",
+  title: "Notre Équipe | 4 Co-Fondateurs Experts",
   description: "Rencontrez les 4 co-fondateurs de FluxDev : experts en cybersécurité, développement full-stack, architecture IA et mobile/IoT. Plus de 30 ans d'expérience cumulée en développement web, mobile, SaaS et sécurité.",
   keywords: [
     "équipe développement",
