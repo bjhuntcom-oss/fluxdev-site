@@ -28,7 +28,7 @@ export function ContactFormEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
-            <Text style={logo}>🚀 FluxDev</Text>
+            <Text style={logo}>FluxDev</Text>
             <Text style={title}>Nouveau message de contact</Text>
             <Text style={subtitle}>
               Un client potentiel vous a contacté via le formulaire du site web

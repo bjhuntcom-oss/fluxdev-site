@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await resend.emails.send({
       from: "FluxDev <contact@bjhunt.com>",
       to: ["bjhuntcom@gmail.com"],
-      subject: `🚀 Nouveau message de contact - ${name} (${type})`,
+      subject: `Nouveau message de contact - ${name} (${type})`,
       replyTo: email,
       react: ContactFormEmail({
         name,
