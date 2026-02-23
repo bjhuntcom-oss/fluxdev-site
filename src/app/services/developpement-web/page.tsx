@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Code, Layers, Zap, Shield, Users, CheckCircle, ArrowRight } from "lucide-react";
+import { ArrowUpRight, Code, Layers, Zap, Shield, CheckCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const technologies = [

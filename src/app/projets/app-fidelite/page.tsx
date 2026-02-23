@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, Gift, CreditCard, QrCode, Tag, Bell, Star, Wallet, Clock, MapPin, ChevronRight, Check, Percent, ShoppingBag, History, TrendingUp, Award, Heart, Share2, Copy, Sparkles, Calendar, Store, Ticket, Zap } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Gift, CreditCard, QrCode, Tag, Bell, Star, Clock, MapPin, ChevronRight, Check, Percent, ShoppingBag, Award, Heart, Share2, Copy, Store, Ticket, Zap } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "@/contexts";
 

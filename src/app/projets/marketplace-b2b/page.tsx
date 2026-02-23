@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, Search, Package, FileText, Truck, Settings, Shield, Filter, ShoppingCart, Star, Check, Clock, Building2, ChevronRight, Download, RefreshCw, Plus, Minus, CreditCard, MapPin, BarChart3, TrendingUp, Eye, Heart, Share2, MessageSquare, AlertCircle, CheckCircle, Box, Layers } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Search, Package, FileText, Truck, Settings, Shield, ShoppingCart, Star, Check, Building2, Download, Plus, Minus, MapPin, TrendingUp, Heart, Share2, CheckCircle, Box } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "@/contexts";
 

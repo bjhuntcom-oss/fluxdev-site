@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, Play, BookOpen, Award, Users, BarChart, CheckCircle, Clock, Star, Download, MessageSquare, Video, FileText, Target, TrendingUp, Calendar, ChevronRight, Search, Filter, Pause, Volume2, Settings, Maximize, SkipForward, SkipBack, Lock, Unlock, Trophy, Medal, Share2, Bookmark, Check } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Play, BookOpen, Award, Users, BarChart, CheckCircle, Clock, Star, Download, Video, Search, Filter, SkipForward, SkipBack, Trophy, Medal, Share2, Check } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "@/contexts";
 

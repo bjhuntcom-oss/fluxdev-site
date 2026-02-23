@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, Home, Eye, Calendar, MapPin, Calculator, Search, Heart, Share2, Phone, Mail, Bed, Bath, Square, Car, ChevronLeft, ChevronRight, Play, Star, Clock, Check, Filter, Grid, List, TrendingUp, Euro, Building2, Trees, User, MessageSquare } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Home, Eye, Calendar, MapPin, Calculator, Search, Heart, Share2, Phone, Bed, Bath, Square, Car, Play, Filter, Grid, List, Building2 } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "@/contexts";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Smartphone, Cpu, Fingerprint, Wifi, Users, CheckCircle, ArrowRight } from "lucide-react";
+import { ArrowUpRight, Smartphone, Cpu, Fingerprint, Wifi, CheckCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const technologies = [

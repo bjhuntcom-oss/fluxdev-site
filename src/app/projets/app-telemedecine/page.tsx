@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, Video, FileText, Calendar, Shield, Heart, Pill, Phone, Mic, MicOff, VideoOff, MessageSquare, Clock, Star, ChevronRight, User, Bell, Search, Filter, Plus, Check, X, AlertCircle, Activity, Thermometer, Droplets, Weight, Stethoscope, ClipboardList, Download, Share2, QrCode, MapPin, CreditCard } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, FileText, Calendar, Shield, Heart, Pill, Clock, Star, ChevronRight, Bell, Filter, Plus, Check, Activity, Thermometer, Droplets, Weight, Download, Share2, QrCode, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "@/contexts";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, Users, Calendar, FileText, GraduationCap, DollarSign, BarChart, Search, Filter, Plus, Mail, Phone, MapPin, Building2, Clock, Check, X, ChevronRight, Star, TrendingUp, Download, Upload, Eye, Edit, Briefcase, Award, Target, MessageSquare, Bell, Settings, Home, PieChart, Activity, UserPlus, ClipboardList } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Users, Calendar, FileText, GraduationCap, DollarSign, BarChart, Search, Filter, Plus, Mail, Phone, MapPin, Building2, Check, X, Star, Download, Eye, Edit } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "@/contexts";
 

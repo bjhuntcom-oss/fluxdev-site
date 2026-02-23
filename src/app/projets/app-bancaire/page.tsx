@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, Fingerprint, CreditCard, Send, PieChart, Shield, Bell, Eye, EyeOff, ChevronRight, TrendingUp, TrendingDown, Wallet, Settings, HelpCircle, Lock, Smartphone, QrCode, ArrowDownLeft, ArrowUpRight as ArrowOut, Plus, Search, Filter, Calendar, Download, RefreshCw, Check, X, Copy, Share2, Star, Clock, Zap, Target, Gift, Users, Building2, Plane, ShoppingBag, Coffee, Car, Home, Utensils, Wifi, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Fingerprint, CreditCard, Send, PieChart, Shield, Bell, Lock, ArrowDownLeft, Plus, Filter, Zap, ShoppingBag, Coffee, Car, Home, Utensils } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "@/contexts";
 

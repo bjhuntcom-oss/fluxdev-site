@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, MapPin, Package, Camera, Navigation, Clock, CheckCircle, Phone, MessageSquare, AlertTriangle, RotateCcw, Scan, User, Star, TrendingUp, Calendar, ChevronRight, Battery, Signal, Wifi, Bell, Settings, Home, List, BarChart3, Truck, Edit, X, Check, Timer, Route } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, MapPin, Package, Camera, Navigation, Clock, CheckCircle, Phone, MessageSquare, AlertTriangle, RotateCcw, Scan, User, TrendingUp, Calendar, ChevronRight, Bell, Truck, Edit, X, Check, Timer, Route } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "@/contexts";
 

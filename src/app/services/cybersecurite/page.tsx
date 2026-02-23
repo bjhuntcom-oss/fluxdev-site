@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Shield, Lock, Eye, AlertTriangle, FileCheck, CheckCircle, ArrowRight, Server } from "lucide-react";
+import { ArrowUpRight, Shield, Lock, Eye, FileCheck, CheckCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const services = [

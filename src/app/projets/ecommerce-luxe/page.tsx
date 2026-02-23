@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, ShoppingBag, Globe, CreditCard, Truck, Shield, Star, Heart, Search, User, ChevronRight, MapPin, Check, Package, Filter, Grid3X3, LayoutGrid, Clock, Gift, Percent, Bell, Settings, LogOut, ChevronDown, Plus, Minus, X, CreditCard as CardIcon, Lock } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, ShoppingBag, Globe, CreditCard, Truck, Shield, Star, Heart, Search, User, ChevronRight, MapPin, Check, Package, Filter, Grid3X3, LayoutGrid, Gift, Bell, Settings, LogOut, ChevronDown, Plus, Minus, X, CreditCard as CardIcon, Lock } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "@/contexts";
 

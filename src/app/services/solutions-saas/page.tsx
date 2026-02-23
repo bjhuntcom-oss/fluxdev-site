@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Cloud, Database, BarChart3, Lock, Users, CheckCircle, ArrowRight, Repeat } from "lucide-react";
+import { ArrowUpRight, Cloud, Database, BarChart3, CheckCircle, ArrowRight, Repeat } from "lucide-react";
 import Link from "next/link";
 
 const technologies = [

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, BarChart3, Brain, TrendingUp, Zap, Database, Lock, Bell, Settings, Users, Calendar, Download, Filter, Search, RefreshCw, ChevronDown, FileText, PieChart, Activity, Target, AlertTriangle, CheckCircle, Clock, Globe, Factory, Gauge, ArrowUp, ArrowDown, MoreHorizontal, Eye, Share2 } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, BarChart3, Brain, TrendingUp, Zap, Database, Lock, Bell, Settings, Download, Filter, Search, RefreshCw, FileText, Activity, Target, AlertTriangle, CheckCircle, Clock, Factory, Gauge, Eye, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useLocale } from "@/contexts";
 

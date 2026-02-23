@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Palette, Layers, MousePointer, Sparkles, Users, CheckCircle, ArrowRight, PenTool } from "lucide-react";
+import { ArrowUpRight, Palette, Layers, MousePointer, Sparkles, CheckCircle, ArrowRight, PenTool } from "lucide-react";
 import Link from "next/link";
 
 const tools = [
